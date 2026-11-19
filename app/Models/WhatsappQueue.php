@@ -1,0 +1,4 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class WhatsappQueue extends Model { protected $table='whatsapp_queue'; protected $fillable=['branch_id','target_group','target_customer_id','target_user_id','template_id','context_json','message','scheduled_at','status','attempts','processing_at','last_error','sent_at','created_by']; protected function casts(): array{return ['context_json'=>'array','scheduled_at'=>'datetime','attempts'=>'integer','processing_at'=>'datetime','sent_at'=>'datetime'];} public function branch(){return $this->belongsTo(Branch::class);} public function customer(){return $this->belongsTo(Customer::class,'target_customer_id');} public function targetUser(){return $this->belongsTo(User::class,'target_user_id');} public function template(){return $this->belongsTo(MessageTemplate::class);} public function creator(){return $this->belongsTo(User::class,'created_by');} }

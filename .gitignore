@@ -1,53 +1,31 @@
-# Operating system and editor files
+*.log
 .DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
 Thumbs.db
-ehthumbs.db
-Desktop.ini
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Local environment and secrets
-/.env*
-!/.env.example
-/env.example
-/secrets/
-*.pem
-*.key
-
-# Composer dependencies
-/vendor/
-
-# CodeIgniter writable runtime data
-/writable/cache/*
-!/writable/cache/index.html
-/writable/logs/*
-!/writable/logs/index.html
-/writable/session/*
-!/writable/session/index.html
-/writable/uploads/*
-!/writable/uploads/index.html
-/writable/debugbar/*
-!/writable/debugbar/index.html
-/writable/queue/*
-!/writable/queue/index.html
-php_errors.log
-
-# Tests, coverage and generated docs
-/tests/coverage*
-/phpunit
-/builds/
-
-# Front-end dependencies and generated assets
-/node_modules/
-/public/build/
-/public/uploads/branding/*
-!/public/uploads/branding/.gitkeep
-
-# Local databases and dumps
-*.sqlite
-*.sqlite3
-*.db
-*.sql.gz
-*.dump
+/_legacy_code/vendor/
+/_legacy_code/node_modules/
+/_legacy_code/.env
+/_legacy_code/routeros-api-php-master/

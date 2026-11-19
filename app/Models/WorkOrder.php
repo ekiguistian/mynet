@@ -1,0 +1,4 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class WorkOrder extends Model { protected $fillable=['branch_id','customer_id','technician_id','sales_user_id','work_order_no','title','description','billable_amount','status','scheduled_at','completed_at','created_by']; protected function casts(): array{return ['billable_amount'=>'decimal:2','scheduled_at'=>'datetime','completed_at'=>'datetime'];} public function branch(){return $this->belongsTo(Branch::class);} public function customer(){return $this->belongsTo(Customer::class);} public function technician(){return $this->belongsTo(User::class,'technician_id');} public function salesPerson(){return $this->belongsTo(User::class,'sales_user_id');} public function creator(){return $this->belongsTo(User::class,'created_by');} public function earnings(){return $this->hasMany(StaffEarning::class);} }
