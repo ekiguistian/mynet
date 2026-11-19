@@ -52,6 +52,27 @@ class RouterOs
         }
     }
 
+    public function systemResource(array $router): array
+    {
+        $baseUrl = rtrim((string) $router['base_url'], '/');
+        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
+        $encrypted = base64_decode((string) $router['password_encrypted'], true);
+        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
+        try {
+            $client = Services::curlrequest(['timeout' => 5, 'http_errors' => false, 'verify' => (bool) ($router['verify_ssl'] ?? true)]);
+            $response = $client->request('GET', $baseUrl . '/rest/system/resource', [
+                'auth' => [$router['username'], Services::encrypter()->decrypt($encrypted)], 'headers' => ['Accept' => 'application/json'],
+            ]);
+            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS mengembalikan HTTP ' . $response->getStatusCode() . '.');
+            $resource = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+            if (isset($resource[0]) && is_array($resource[0])) $resource = $resource[0];
+            if (! is_array($resource) || ! isset($resource['uptime'])) throw new RuntimeException('Data system resource RouterOS tidak lengkap.');
+            return $resource;
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Gagal membaca system resource: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
     public function createHotspotUser(array $router, string $username, string $password, string $profile): void
     {
         $baseUrl = rtrim((string) $router['base_url'], '/');

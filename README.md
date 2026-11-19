@@ -29,7 +29,7 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 
 ### MikroTik dan voucher hotspot
 
-- Detail router disimpan per cabang. Kata sandi API router dienkripsi memakai application encryption key CodeIgniter.
+- Detail router disimpan per cabang: nama, IP Public/hostname VPN, port HTTPS/REST API, username, dan password terenkripsi. Halaman router memperbarui status koneksi, uptime, CPU, dan penggunaan memori setiap 60 detik.
 - Generate 1–100 voucher dengan username dan kata sandi acak.
 - Voucher dapat disimpan untuk ekspor/pemakaian manual atau langsung dibuat sebagai user hotspot di RouterOS v7 melalui REST API.
 - Status `sync_failed` dicatat bila perangkat menolak atau tidak dapat dijangkau; kegagalan tidak menghapus voucher lokal.
@@ -369,7 +369,7 @@ Kredensial juga dapat dimasukkan dari **Pengaturan → Integrasi API**. Halaman 
 
 ## Konfigurasi RouterOS
 
-Gunakan RouterOS v7, aktifkan layanan HTTPS `www-ssl`, pasang sertifikat yang dipercaya server aplikasi, dan buat user khusus REST dengan izin minimum yang diperlukan untuk menulis user Hotspot. Batasi `available-from`/firewall router ke alamat server aplikasi atau VPN. Gunakan HTTPS dan biarkan verifikasi sertifikat aktif untuk penggunaan produksi.
+Gunakan RouterOS v7, aktifkan layanan HTTPS `www-ssl`, pasang sertifikat yang dipercaya server aplikasi, dan buat user khusus REST dengan izin minimum untuk membaca resource sistem serta mengelola user Hotspot, PPP secrets, dan Simple Queue sesuai fitur yang digunakan. Saat menambah router, masukkan IP Public atau hostname VPN dan **port layanan HTTPS/REST** (umumnya port `www-ssl`, sering `443`; bukan port API biner `8728`). Batasi `available-from`/firewall router ke alamat server aplikasi atau VPN. Gunakan HTTPS dan biarkan verifikasi sertifikat aktif untuk penggunaan produksi.
 
 Tambahkan router melalui menu **Router MikroTik** dengan endpoint seperti `https://alamat-router:443`, username API, password, dan cabang. Pilih router pada form generate voucher agar akun dibuat di router tersebut. Tanpa router dipilih, aplikasi hanya membuat voucher lokal.
 

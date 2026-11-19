@@ -343,8 +343,73 @@
     gap: 12px;
 }
 
+.router-monitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 14px;
+}
+
+.router-monitor-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid #e8edf4;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.router-card-heading,
+.router-resource-grid > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.router-monitor-card > small,
+.router-resource-grid small {
+    display: block;
+    color: #7d8999;
+    font-size: 11px;
+}
+
+.router-monitor-card > small {
+    margin-top: 8px;
+    overflow-wrap: anywhere;
+}
+
+.router-resource-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.router-resource-grid strong {
+    font-size: 12px;
+    text-align: right;
+}
+
+.status-router-online {
+    color: #147b54;
+    background: #e7f7ef;
+}
+
+.status-router-offline {
+    color: #b33838;
+    background: #fff0f0;
+}
+
+.router-last-check {
+    color: #7d8999;
+    font-size: 12px;
+}
+
 @media (max-width: 760px) {
     .branch-wa-heading {
         grid-column: auto;
+    }
+
+    .router-monitor-card {
+        padding: 14px;
     }
 }

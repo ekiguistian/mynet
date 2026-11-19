@@ -12,13 +12,17 @@ $descriptions = [
     'work-orders' => 'Penugasan pelanggan untuk teknisi atau sales dengan bonus yang dihitung saat selesai.',
     'earnings' => 'Bonus teknisi dan sales fee mengikuti aturan persentase atau nominal tetap.',
     'vouchers' => 'Buat akun voucher hotspot dan sinkronkan ke router MikroTik RouterOS v7.',
-    'routers' => 'Simpan endpoint RouterOS dan kredensial terenkripsi untuk sinkronisasi hotspot.',
+    'routers' => 'Daftarkan IP Public atau VPN dan port HTTPS/REST API untuk memantau RouterOS.',
     'users' => 'Atur akun staf, cabang, dan hak akses setiap peran.',
     'branches' => 'Pisahkan operasional, pelanggan, kas, dan stok berdasarkan wilayah layanan.',
 ];
 $moneyColumns = ['monthly_price', 'cost_price', 'sale_price', 'amount', 'total', 'billable_amount', 'unit_price'];
 ?>
 <div class="page-heading compact-heading"><div><div class="eyebrow">DATA OPERASIONAL <span>·</span> <?= esc(strtoupper($module)) ?></div><h1><?= esc($definition['title']) ?></h1><p><?= esc($descriptions[$module] ?? 'Kelola data operasional jaringan Anda.') ?></p></div><?php if ($canCreate): ?><a class="button button-primary" href="<?= site_url('/area/' . $module . '/baru') ?>">＋ Tambah data</a><?php endif; ?></div>
+
+<?php if ($module === 'routers'): ?><section class="panel router-monitor-panel" data-router-monitor data-status-url="<?= esc(site_url('/routers/status')) ?>"><div class="panel-heading"><div><h2>Status dan resource router</h2><p>Terhubung, uptime, CPU, dan pemakaian memori · diperbarui otomatis setiap menit</p></div><span class="router-last-check" data-router-last-check>Memeriksa koneksi…</span></div>
+    <?php if ($rows): ?><div class="router-monitor-grid"><?php foreach ($rows as $router): ?><article class="router-monitor-card" data-router-card="<?= (int) $router['id'] ?>"><div class="router-card-heading"><strong><?= esc($router['name']) ?></strong><span class="status-pill status-pending" data-router-state>Memeriksa</span></div><small><?= esc($router['host'] ?? $router['base_url']) ?>:<?= esc((string) ($router['api_port'] ?? '')) ?></small><div class="router-resource-grid"><div><small>UPTIME</small><strong data-router-uptime>—</strong></div><div><small>CPU</small><strong data-router-cpu>—</strong></div><div><small>MEMORI</small><strong data-router-memory>—</strong></div></div></article><?php endforeach; ?></div><?php else: ?><div class="empty-state"><strong>Belum ada router</strong><p>Tambahkan router untuk mulai memantau koneksi.</p></div><?php endif; ?>
+</section><?php endif; ?>
 
 <?php if (in_array($module, ['invoices', 'attendance', 'vouchers'], true)): ?>
     <?php if ($module === 'invoices' && $canCreate): ?><section class="action-strip"><div class="action-strip-icon">▧</div><div><strong>Tagihan bulanan</strong><p>Tagihan yang sudah dibuat untuk periode pilihan akan dilewati otomatis.</p></div><form method="post" action="<?= site_url('/billing/generate') ?>" class="strip-form"><?= csrf_field() ?><input type="month" name="period" value="<?= esc(date('Y-m')) ?>"><button class="button button-primary button-small" type="submit">Generate tagihan <span>→</span></button></form></section><?php endif; ?>

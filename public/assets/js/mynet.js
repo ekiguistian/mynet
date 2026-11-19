@@ -147,4 +147,34 @@ document.addEventListener('DOMContentLoaded', () => {
     service?.addEventListener('change', applyFilters);
     applyFilters();
   }
+
+  const routerMonitor = document.querySelector('[data-router-monitor]');
+  if (routerMonitor) {
+    const lastCheck = routerMonitor.querySelector('[data-router-last-check]');
+    const formatMemory = bytes => `${(Number(bytes || 0) / (1024 * 1024)).toFixed(0)} MB`;
+    const refreshRouterStatus = async () => {
+      try {
+        const response = await fetch(routerMonitor.dataset.statusUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin', cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Status router gagal dimuat.');
+        data.routers.forEach(router => {
+          const card = routerMonitor.querySelector(`[data-router-card="${CSS.escape(String(router.id))}"]`);
+          if (!card) return;
+          const state = card.querySelector('[data-router-state]');
+          state.textContent = router.connected ? 'Aktif · Terhubung' : 'Tidak terhubung';
+          state.className = `status-pill ${router.connected ? 'status-router-online' : 'status-router-offline'}`;
+          card.querySelector('[data-router-uptime]').textContent = router.uptime || '—';
+          card.querySelector('[data-router-cpu]').textContent = router.cpu === null ? '—' : `${router.cpu}%`;
+          const total = Number(router.memory_total || 0);
+          const used = Number(router.memory_used || 0);
+          card.querySelector('[data-router-memory]').textContent = total ? `${formatMemory(used)} / ${formatMemory(total)} (${Math.round(used * 100 / total)}%)` : '—';
+        });
+        if (lastCheck) lastCheck.textContent = `Terakhir diperbarui ${new Date(data.checked_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+      } catch (error) {
+        if (lastCheck) lastCheck.textContent = error.message || 'Gagal memuat status';
+      }
+    };
+    refreshRouterStatus();
+    window.setInterval(refreshRouterStatus, 60_000);
+  }
 });
