@@ -1,0 +1,36 @@
+<?= $this->extend('layouts/app') ?>
+<?= $this->section('content') ?>
+<div class="page-heading dashboard-heading">
+    <div><div class="eyebrow">RINGKASAN <span>·</span> <?= esc(date('d/m/Y')) ?></div><h1>Selamat datang, <?= esc(explode(' ', (string) mynet_user('name'))[0]) ?> <span class="heading-wave">✦</span></h1><p>Berikut ringkasan operasional jaringan Anda hari ini.</p></div>
+    <div class="heading-actions"><?php if (in_array(mynet_user('role'), ['superadmin', 'administrator', 'admin', 'sales'], true)): ?><a class="button button-soft" href="<?= site_url('/area/customers/baru') ?>">＋ Pelanggan</a><?php endif; ?><?php if (in_array(mynet_user('role'), ['superadmin', 'administrator', 'admin', 'sales', 'noc'], true)): ?><a class="button button-primary" href="<?= site_url('/area/work-orders/baru') ?>">＋ Tugas baru</a><?php endif; ?></div>
+</div>
+
+<div class="stat-grid">
+    <?php foreach ($stats as $stat): ?>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label"><?= esc($stat['label']) ?></span><span class="stat-icon tone-<?= esc($stat['tone']) ?>"><?= esc($stat['icon']) ?></span></div><div class="stat-value"><?= esc($stat['value']) ?></div><div class="stat-foot"><span class="tiny-dot tone-dot-<?= esc($stat['tone']) ?>"></span><?= esc($stat['hint']) ?></div></article>
+    <?php endforeach; ?>
+</div>
+
+<div class="dashboard-grid">
+    <?php if ($canSeeFinance): ?><section class="panel cashflow-panel">
+        <div class="panel-heading"><div><h2>Arus kas</h2><p>Ringkasan pemasukan dan pengeluaran bulan berjalan</p></div><span class="period-select">Bulan ini <span>⌄</span></span></div>
+        <div class="cash-summary"><div><small>Total pemasukan</small><strong><?= esc(mynet_money($income)) ?></strong><span class="change-positive">↗ tercatat bulan ini</span></div><div class="cash-divider"></div><div><small>Total pengeluaran</small><strong><?= esc(mynet_money($expenses)) ?></strong><span class="change-neutral">biaya tercatat</span></div><div class="cash-net"><small>Selisih bersih</small><strong><?= esc(mynet_money($net)) ?></strong></div></div>
+        <div class="chart-area"><div class="chart-y-labels"><?php foreach ($cashflowAxisLabels as $axisLabel): ?><span><?= esc($axisLabel) ?></span><?php endforeach; ?></div><div class="chart-plot"><div class="chart-gridlines"><i></i><i></i><i></i><i></i><i></i></div><div class="chart-bars"><?php foreach ($cashflowBars as $index => $bar): ?><div class="bar-group" title="<?= esc('Hari sekitar ' . ($cashflowLabels[min(6, (int) floor($index * count($cashflowLabels) / 12))] ?? '') . ' · Pemasukan ' . mynet_money($bar['income_amount']) . ' · Pengeluaran ' . mynet_money($bar['expense_amount'])) ?>"><span class="bar-income" style="height: <?= $bar['income'] ?>%" aria-label="Pemasukan <?= esc(mynet_money($bar['income_amount'])) ?>"></span><span class="bar-expense" style="height: <?= $bar['expense'] ?>%" aria-label="Pengeluaran <?= esc(mynet_money($bar['expense_amount'])) ?>"></span></div><?php endforeach; ?></div><div class="chart-x-labels"><?php foreach ($cashflowLabels as $label): ?><span><?= esc($label) ?></span><?php endforeach; ?></div></div></div>
+        <div class="chart-legend"><span><i class="legend-income"></i> Pemasukan</span><span><i class="legend-expense"></i> Pengeluaran</span><span class="chart-period-note">Rupiah · <?= esc(date('m/Y')) ?></span></div>
+    </section><?php endif; ?>
+
+    <section class="panel operations-panel">
+        <div class="panel-heading"><div><h2>Operasional</h2><p>Status singkat unit kerja</p></div><span class="live-badge"><i></i> BERJALAN</span></div>
+        <div class="operation-row"><div class="operation-icon blue-soft">⌘</div><div class="operation-copy"><strong>Router & jaringan</strong><small>Integrasi RouterOS v7</small></div><span class="operation-value"><?= (int) $activeRouters ?><small> router</small></span></div>
+        <div class="operation-row"><div class="operation-icon purple-soft">▦</div><div class="operation-copy"><strong>Voucher tersedia</strong><small>Siap dibagikan</small></div><span class="operation-value"><?= (int) $readyVouchers ?><small> voucher</small></span></div>
+        <?php if (mynet_user('role') !== 'pelanggan'): ?><div class="operation-row"><div class="operation-icon green-soft">◷</div><div class="operation-copy"><strong>Absensi hari ini</strong><small><?= $attendance && $attendance['check_in'] ? 'Masuk ' . esc(date('H:i', strtotime($attendance['check_in']))) : 'Belum tercatat' ?></small></div><span class="operation-value operation-status <?= $attendance && $attendance['check_in'] ? 'status-online' : 'status-idle' ?>"><?= $attendance && $attendance['check_in'] ? 'Aktif' : '—' ?></span></div><?php endif; ?>
+        <?php if ($canSeeFinance || mynet_user('role') === 'pelanggan'): ?><div class="operation-row"><div class="operation-icon orange-soft">▤</div><div class="operation-copy"><strong>Tagihan terbuka</strong><small>Menunggu pembayaran</small></div><a class="operation-link" href="<?= site_url('/area/invoices') ?>">Lihat <span>→</span></a></div><?php endif; ?>
+        <?php if (mynet_user('role') !== 'pelanggan'): ?><form method="post" action="<?= site_url('/attendance/toggle') ?>" class="attendance-action"><?= csrf_field() ?><span><?= $attendance && $attendance['check_in'] && ! $attendance['check_out'] ? 'Jam kerja selesai?' : 'Mulai aktivitas kerja?' ?></span><button class="button button-soft button-small" type="submit"><?= $attendance && $attendance['check_in'] && ! $attendance['check_out'] ? 'Absen pulang' : 'Absen masuk' ?> <span>→</span></button></form><?php endif; ?>
+    </section>
+</div>
+
+<?php if ($canSeeFinance || mynet_user('role') === 'pelanggan'): ?><section class="panel invoice-panel">
+    <div class="panel-heading"><div><h2>Tagihan terbaru</h2><p>Pantau pembayaran pelanggan terbaru</p></div><a class="text-link" href="<?= site_url('/area/invoices') ?>">Lihat semua <span>→</span></a></div>
+    <?php if ($latestInvoices): ?><div class="table-wrap"><table class="data-table"><thead><tr><th>NO. TAGIHAN</th><th>PELANGGAN</th><th>PERIODE</th><th>JATUH TEMPO</th><th>TOTAL</th><th>STATUS</th><th>AKSI</th></tr></thead><tbody><?php foreach ($latestInvoices as $invoice): ?><tr><td class="cell-strong"><?= esc($invoice['invoice_no']) ?></td><td><?= esc($invoice['customer_name'] ?? '—') ?></td><td><?= esc($invoice['period']) ?></td><td><?= esc($invoice['due_date']) ?></td><td class="cell-strong"><?= esc(mynet_money($invoice['total'])) ?></td><td><span class="status-pill status-<?= esc($invoice['status']) ?>"><?= esc(match ($invoice['status']) { 'unpaid' => 'Belum dibayar', 'partial' => 'Sebagian dibayar', 'paid' => 'Lunas', 'overdue' => 'Terlambat', default => ucfirst($invoice['status']) }) ?></span></td><td><a class="row-action-button muted" href="<?= site_url('/area/invoices') ?>">Lihat tagihan →</a></td></tr><?php endforeach; ?></tbody></table></div><?php else: ?><div class="empty-state"><span>▧</span><strong>Belum ada tagihan</strong><p>Buat tagihan bulanan untuk melihat ringkasan pembayaran di sini.</p><a class="button button-soft button-small" href="<?= site_url('/area/invoices') ?>">Buka tagihan</a></div><?php endif; ?>
+</section><?php endif; ?>
+<?= $this->endSection() ?>

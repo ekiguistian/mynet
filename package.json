@@ -1,20 +1,19 @@
 {
-  "name": "mynet-billing-assets",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Local frontend tooling for Mynet Billing",
-  "scripts": {
-    "build": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i resources/css/tailwind.css -o public/assets/css/tailwind.css --minify && node scripts/normalize-css.mjs",
-    "build:js": "esbuild resources/js/app.js --bundle --minify --outfile=public/assets/js/app.bundle.js && node scripts/trim-bundle.mjs",
-    "watch:css": "tailwindcss -i resources/css/tailwind.css -o public/assets/css/tailwind.css --watch"
-  },
-  "dependencies": {
-    "alpinejs": "^3.17.5"
-  },
-  "devDependencies": {
-    "@tailwindcss/cli": "^4.3.5",
-    "esbuild": "^0.28.2",
-    "tailwindcss": "^4.3.5"
-  }
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "concurrently": "^10.0.3",
+        "laravel-vite-plugin": "^3.1",
+        "tailwindcss": "^4.0.0",
+        "vite": "^8.0.0"
+    },
+    "optionalDependencies": {
+        "@laravel/multiplex": "^0.4.1"
+    }
 }

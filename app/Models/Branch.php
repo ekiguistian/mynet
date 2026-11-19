@@ -1,0 +1,4 @@
+<?php
+namespace App\Models;
+use Illuminate\Database\Eloquent\Model;
+class Branch extends Model { protected $fillable=['name','code','address','phone','status']; protected function casts(): array{return ['created_at'=>'datetime','updated_at'=>'datetime'];} public function customers(){return $this->hasMany(Customer::class);} public function plans(){return $this->hasMany(Plan::class);} public function routers(){return $this->hasMany(Router::class);} public function products(){return $this->hasMany(Product::class);} public function invoices(){return $this->hasMany(Invoice::class);} public function financeEntries(){return $this->hasMany(FinanceEntry::class);} public function users(){return $this->hasMany(User::class);} public function whatsappIntegration(){return $this->hasOne(BranchWhatsappIntegration::class);} }
