@@ -33,7 +33,7 @@
     <nav class="side-nav" aria-label="Menu utama">
         <?php $lastNavGroup = null; ?>
         <?php foreach (($menus ?? []) as $menu): ?>
-            <?php $navGroup = match ($menu['label']) { 'Ringkasan' => 'Ringkasan', 'Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran' => 'Pelanggan & tagihan', 'Voucher hotspot' => 'Voucher hotspot', 'Router MikroTik', 'ODC', 'Jalur / core ODC', 'ODP dan port' => 'Jaringan', 'Stok barang', 'Serial ONT/ONU', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Tiket maintenance' => 'Operasional', default => 'Administrasi' }; ?>
+            <?php $navGroup = match ($menu['label']) { 'Ringkasan' => 'Ringkasan', 'Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran' => 'Pelanggan', 'Voucher hotspot', 'Router MikroTik', 'ODC', 'Jalur / core ODC', 'ODP dan port' => 'Jaringan', 'Stok barang', 'Serial ONT/ONU', 'Absensi', 'Tugas teknisi', 'Tiket maintenance' => 'Operasional', 'Keuangan', 'Bonus & fee', 'Aturan bonus' => 'Keuangan', default => 'Pengaturan' }; ?>
             <?php if ($navGroup !== $lastNavGroup): ?><div class="nav-caption"><?= esc(strtoupper($navGroup)) ?></div><?php $lastNavGroup = $navGroup; endif; ?>
             <?php $active = (uri_string() === ltrim($menu['url'], '/') || str_starts_with(uri_string(), ltrim($menu['url'], '/') . '/')); ?>
             <a class="nav-link <?= $active ? 'active' : '' ?>" href="<?= site_url($menu['url']) ?>">
@@ -60,7 +60,7 @@
 <main class="main-area">
     <header class="topbar">
         <button type="button" class="mobile-menu-button" aria-label="Buka menu" data-menu-open>☰</button>
-        <div class="topbar-breadcrumb"><span>Workspace</span><i>/</i><strong><?= esc($title ?? 'Ringkasan') ?></strong></div>
+        <div class="topbar-breadcrumb"><span>Ruang kerja</span><i>/</i><strong><?= esc($title ?? 'Ringkasan') ?></strong></div>
         <div class="topbar-actions">
             <div class="branch-pill"><span class="branch-pin">⌖</span><span><?= esc(mynet_user('branch_name') ?: 'Semua cabang') ?></span><span class="chevron">⌄</span></div>
             <button class="icon-button" type="button" aria-label="Notifikasi">♧<span class="notification-dot"></span></button>

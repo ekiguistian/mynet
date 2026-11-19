@@ -14,7 +14,7 @@ class Workspace extends BaseController
         'serials' => ['title' => 'Serial ONT/ONU', 'table' => 'product_serials', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'noc'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['serial_number' => 'Serial number', 'product_name' => 'Barang', 'branch_name' => 'Cabang', 'status' => 'Status'], 'fields' => ['branch_id' => ['Cabang', 'options:branches', true], 'product_id' => ['Barang ONT/ONU', 'options:ont_products', true], 'serial_number' => ['Serial number perangkat', 'text', true]]],
         'plans' => ['title' => 'Paket layanan', 'table' => 'plans', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama paket', 'service_type' => 'Jenis', 'speed_download' => 'Unduh', 'speed_upload' => 'Unggah', 'monthly_price' => 'Tarif / bulan', 'active' => 'Aktif'], 'fields' => ['name' => ['Nama paket', 'text', true], 'service_type' => ['Jenis layanan', 'select:pppoe,static_ip', true], 'speed_download' => ['Kecepatan unduh', 'text', false], 'speed_upload' => ['Kecepatan unggah', 'text', false], 'monthly_price' => ['Tarif bulanan (Rp)', 'number', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
         'customers' => ['title' => 'Pelanggan tetap', 'table' => 'customers', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'noc', 'keuangan', 'sales', 'pelanggan'], 'create' => ['superadmin', 'administrator', 'admin', 'sales'], 'columns' => ['customer_code' => 'ID pelanggan', 'full_name' => 'Nama', 'phone' => 'WhatsApp', 'plan_name' => 'Paket', 'service_type' => 'Jenis koneksi', 'status' => 'Status'], 'fields' => ['customer_code' => ['ID pelanggan (10 digit)', 'customer_id', true], 'sales_user_id' => ['Nama sales (opsional)', 'options:sales', false], 'branch_id' => ['Cabang', 'options:branches', true], 'created_by_display' => ['Dibuat oleh', 'readonly', false], 'full_name' => ['Nama lengkap (nama depan dan belakang)', 'text', true], 'phone' => ['WhatsApp aktif (format 62xxxxxxxxxx)', 'phone', true], 'email' => ['Email', 'email', false], 'service_type' => ['Jenis koneksi', 'select:pppoe,static_ip', true], 'connection_mode' => ['Aksi MikroTik', 'select:create,sync', true], 'mikrotik_router_id' => ['Router MikroTik', 'options:routers', true], 'mikrotik_username' => ['Username koneksi PPPoE', 'text', false], 'mikrotik_password' => ['Kata sandi PPPoE (hanya dikirim ke MikroTik)', 'password', false], 'static_ip' => ['Alamat IP statis', 'text', false], 'plan_id' => ['Paket layanan', 'options:plans', true], 'due_day' => ['Jatuh tempo (tanggal 1–20)', 'number', true], 'auto_billing' => ['Generate tagihan otomatis', 'select:1,0', true], 'device_serial' => ['Serial number ONT/ONU', 'options:available_serials', true], 'odp_port_id' => ['ODP · port', 'options:available_odp_ports', true], 'installed_at' => ['Tanggal aktif', 'date', false], 'address' => ['Alamat pemasangan', 'textarea', false], 'notes' => ['Catatan', 'textarea', false]]],
-        'routers' => ['title' => 'Router MikroTik', 'table' => 'routers', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama router', 'host' => 'IP Public / VPN', 'api_port' => 'Port API (HTTPS)', 'branch_name' => 'Cabang'], 'fields' => ['name' => ['Nama router', 'text', true], 'host_input' => ['IP Public / VPN', 'text', true], 'api_port' => ['Port API (HTTPS/REST)', 'number', true], 'username' => ['Username', 'text', true], 'password' => ['Password', 'password', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
+        'routers' => ['title' => 'Router MikroTik', 'table' => 'routers', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama router', 'branch_name' => 'Cabang'], 'fields' => ['name' => ['Nama router', 'text', true], 'host_input' => ['IP Public / VPN', 'text', true], 'api_port' => ['Port API', 'number', true], 'username' => ['Username', 'text', true], 'password' => ['Password', 'password', true], 'api_ssl' => ['Gunakan SSL', 'select:0,1', true], 'verify_ssl' => ['Verifikasi sertifikat SSL', 'select:1,0', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
         'products' => ['title' => 'Stok barang', 'table' => 'products', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'keuangan'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['sku' => 'SKU', 'name' => 'Barang', 'stock_qty' => 'Stok', 'minimum_stock' => 'Batas minimum', 'cost_price' => 'Harga modal', 'sale_price' => 'Harga jual'], 'fields' => ['sku' => ['SKU', 'text', true], 'name' => ['Nama barang', 'text', true], 'category' => ['Jenis barang', 'select:ont_onu,router,accessory,other', true], 'unit' => ['Satuan', 'text', true], 'minimum_stock' => ['Batas stok minimum', 'number', false], 'cost_price' => ['Harga modal per satuan', 'number', false], 'sale_price' => ['Harga jual', 'number', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
         'invoices' => ['title' => 'Tagihan pelanggan', 'table' => 'invoices', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'pelanggan'], 'create' => [], 'columns' => ['invoice_no' => 'No. tagihan', 'customer_name' => 'Pelanggan', 'period' => 'Periode', 'total' => 'Total', 'due_date' => 'Jatuh tempo', 'status' => 'Status']],
         'payments' => ['title' => 'Pembayaran', 'table' => 'payments', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'pelanggan'], 'create' => [], 'columns' => ['external_reference' => 'Referensi', 'customer_name' => 'Pelanggan', 'provider' => 'Gateway', 'amount' => 'Jumlah', 'status' => 'Status', 'paid_at' => 'Waktu bayar']],
@@ -38,7 +38,44 @@ class Workspace extends BaseController
         }
         if ($denied = $this->authorize($module['roles'])) return $denied;
         $builder = $this->queryFor($slug, $module);
-        $rows = $builder->orderBy($module['table'] . '.id', 'DESC')->limit(100)->get()->getResultArray();
+        $productPager = null;
+        $stockMovementPager = null;
+        $stockMovements = [];
+        $productOptions = [];
+        $availableSerialOptions = [];
+        if ($slug === 'products') {
+            $search = trim((string) $this->request->getGet('q'));
+            if ($search !== '') $builder->groupStart()->like('products.sku', $search)->orLike('products.name', $search)->orLike('products.category', $search)->groupEnd();
+            $productPager = service('pager');
+            $productTotal = $builder->countAllResults(false);
+            $productPager->store('products', max(1, (int) $this->request->getGet('page_products')), 25, $productTotal);
+            $productOffset = ($productPager->getCurrentPage('products') - 1) * 25;
+            $rows = $builder->orderBy('products.id', 'DESC')->limit(25, $productOffset)->get()->getResultArray();
+
+            $db = db_connect();
+            $options = $db->table('products')->select('id, branch_id, sku, name, category, stock_qty')->where('active', 1);
+            if (mynet_user('branch_id')) $options->groupStart()->where('branch_id', mynet_user('branch_id'))->orWhere('branch_id', null)->groupEnd();
+            $productOptions = $options->orderBy('name')->get()->getResultArray();
+
+            $serials = $db->table('product_serials ps')->select('ps.id, ps.product_id, ps.branch_id, ps.serial_number')
+                ->join('products p', 'p.id = ps.product_id')->where('ps.status', 'available');
+            if (mynet_user('branch_id')) $serials->where('ps.branch_id', mynet_user('branch_id'));
+            $availableSerialOptions = $serials->orderBy('ps.serial_number')->get()->getResultArray();
+
+            $movementQuery = $db->table('inventory_movements im')
+                ->select('im.id, im.branch_id, im.product_id, im.direction, im.quantity, im.unit_cost, im.reason, im.reference, im.created_at, p.sku, p.name AS product_name, u.full_name AS user_name')
+                ->join('products p', 'p.id = im.product_id')->join('users u', 'u.id = im.user_id', 'left');
+            if (mynet_user('branch_id')) $movementQuery->where('im.branch_id', mynet_user('branch_id'));
+            $movementSearch = trim((string) $this->request->getGet('movement_q'));
+            if ($movementSearch !== '') $movementQuery->groupStart()->like('p.sku', $movementSearch)->orLike('p.name', $movementSearch)->orLike('im.reason', $movementSearch)->orLike('im.reference', $movementSearch)->orLike('u.full_name', $movementSearch)->groupEnd();
+            $stockMovementPager = service('pager');
+            $movementTotal = $movementQuery->countAllResults(false);
+            $stockMovementPager->store('inventory', max(1, (int) $this->request->getGet('page_inventory')), 20, $movementTotal);
+            $movementOffset = ($stockMovementPager->getCurrentPage('inventory') - 1) * 20;
+            $stockMovements = $movementQuery->orderBy('im.created_at', 'DESC')->limit(20, $movementOffset)->get()->getResultArray();
+        } else {
+            $rows = $builder->orderBy($module['table'] . '.id', 'DESC')->limit(100)->get()->getResultArray();
+        }
         if ($slug === 'invoices') {
             foreach ($rows as &$row) {
                 if (in_array($row['status'], ['unpaid', 'partial'], true) && $row['due_date'] < date('Y-m-d')) $row['status'] = 'overdue';
@@ -81,6 +118,8 @@ class Workspace extends BaseController
             'rows' => $rows, 'menus' => mynet_menus(mynet_user('role')),
             'canCreate' => in_array(mynet_user('role'), $module['create'], true),
             'actions' => $links, 'openInvoices' => $openInvoices, 'routers' => $routers, 'voucherBranches' => $voucherBranches,
+            'productPager' => $productPager, 'stockMovementPager' => $stockMovementPager, 'stockMovements' => $stockMovements,
+            'productOptions' => $productOptions, 'availableSerialOptions' => $availableSerialOptions,
         ]);
     }
 
@@ -206,14 +245,21 @@ class Workspace extends BaseController
             $port = filter_var($posted['api_port'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 65535]]);
             $validHost = filter_var($host, FILTER_VALIDATE_IP) || filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME);
             if (! $validHost || str_contains($host, '/') || str_contains($host, '://')) return redirect()->back()->withInput()->with('error', 'Isi IP Public atau hostname VPN yang valid tanpa skema URL.');
-            if ($port === false) return redirect()->back()->withInput()->with('error', 'Port API harus berupa angka 1 sampai 65535. Gunakan port layanan HTTPS/REST MikroTik.');
-            $authorityHost = str_contains($host, ':') ? '[' . $host . ']' : $host;
-            $data['host'] = $host;
-            $data['base_url'] = 'https://' . $authorityHost . ':' . $port;
-            $data['api_port'] = $port;
-            $data['verify_ssl'] = 1;
-            $data['password_encrypted'] = base64_encode(Services::encrypter()->encrypt((string) ($posted['password'] ?? '')));
-            unset($data['password'], $data['host_input']);
+            if ($port === false) return redirect()->back()->withInput()->with('error', 'Port API harus berupa angka 1 sampai 65535. Umumnya RouterOS memakai 8728 (API melalui VPN) atau 8729 (API SSL).');
+            $settings = [
+                'host' => $host, 'port' => $port, 'username' => trim((string) ($posted['username'] ?? '')),
+                'password' => (string) ($posted['password'] ?? ''), 'ssl' => (string) ($posted['api_ssl'] ?? '0') === '1',
+                'verify_ssl' => (string) ($posted['verify_ssl'] ?? '1') === '1',
+            ];
+            if ($settings['username'] === '' || $settings['password'] === '') return redirect()->back()->withInput()->with('error', 'Username dan password API wajib diisi.');
+            $data['host'] = null;
+            $data['base_url'] = 'routeros://configured';
+            $data['api_port'] = null;
+            $data['username'] = 'encrypted';
+            $data['password_encrypted'] = '';
+            $data['connection_encrypted'] = base64_encode(Services::encrypter()->encrypt(json_encode($settings, JSON_THROW_ON_ERROR)));
+            $data['verify_ssl'] = (int) $settings['verify_ssl'];
+            unset($data['password'], $data['host_input'], $data['api_ssl']);
             $data['active'] = 1;
         } elseif ($slug === 'users') {
             if (strlen((string) $posted['password']) < 12) return redirect()->back()->withInput()->with('error', 'Kata sandi awal minimal 12 karakter.');
@@ -245,7 +291,7 @@ class Workspace extends BaseController
             if (! $plan || $plan['service_type'] !== $data['service_type'] || (! empty($plan['branch_id']) && (int) $plan['branch_id'] !== (int) $data['branch_id'])) return redirect()->back()->withInput()->with('error', 'Paket aktif harus sesuai jenis koneksi dan cabang pelanggan.');
             $router = db_connect()->table('routers')->where('id', (int) $data['mikrotik_router_id'])->where('active', 1)->where('branch_id', $data['branch_id'])->countAllResults();
             if (! $router) return redirect()->back()->withInput()->with('error', 'Pilih router aktif dari cabang pelanggan.');
-            $serial = db_connect()->table('product_serials ps')->select('ps.id, ps.product_id, ps.serial_number')
+            $serial = db_connect()->table('product_serials ps')->select('ps.id, ps.product_id, ps.serial_number, p.cost_price, p.name AS product_name')
                 ->join('products p', 'p.id = ps.product_id')->where('ps.id', (int) $data['device_serial'])
                 ->where('ps.branch_id', $data['branch_id'])->where('ps.status', 'available')->where('p.category', 'ont_onu')->get()->getRowArray();
             if (! $serial) return redirect()->back()->withInput()->with('error', 'Serial ONT/ONU harus terdaftar dan tersedia pada stok cabang.');
@@ -287,6 +333,11 @@ class Workspace extends BaseController
                 db_connect()->transRollback();
                 return redirect()->back()->withInput()->with('error', 'Stok barang ONT/ONU kosong; catat stok masuk sebelum memasang perangkat.');
             }
+            db_connect()->table('inventory_movements')->insert([
+                'branch_id' => $branchId, 'product_id' => $serial['product_id'], 'direction' => 'out', 'quantity' => 1,
+                'unit_cost' => $serial['cost_price'], 'reason' => 'Pemasangan perangkat pelanggan ' . $customerCode,
+                'reference' => 'INSTALL-' . $customerCode, 'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
+            ]);
             db_connect()->table('fiber_odp_ports')->where('id', $port['id'])->where('status', 'available')->update(['status' => 'occupied', 'customer_id' => $customerId]);
             if (db_connect()->affectedRows() !== 1) {
                 db_connect()->transRollback();
@@ -335,11 +386,25 @@ class Workspace extends BaseController
             $product = $productQuery->get()->getRowArray();
             if (! $product || ! $this->inBranch($posted['branch_id'] ?? null)) return redirect()->back()->withInput()->with('error', 'Pilih produk ONT/ONU aktif pada cabang Anda.');
             $db = db_connect();
-            if ($db->table('product_serials')->where('serial_number', trim((string) $posted['serial_number']))->countAllResults()) return redirect()->back()->withInput()->with('error', 'Serial number sudah terdaftar.');
+            $serialNumber = trim((string) $posted['serial_number']);
+            if ($serialNumber === '' || $db->table('product_serials')->where('serial_number', $serialNumber)->countAllResults()) return redirect()->back()->withInput()->with('error', 'Serial number wajib diisi dan harus unik.');
+            $db->transBegin();
             $db->table('product_serials')->insert([
                 'branch_id' => $branchId, 'product_id' => (int) $product['id'], 'serial_number' => trim((string) $posted['serial_number']),
                 'status' => 'available', 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s'),
             ]);
+            if ($db->affectedRows() !== 1) {
+                $db->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Serial number sudah terdaftar atau gagal disimpan.');
+            }
+            $db->table('products')->set('stock_qty', 'stock_qty + 1', false)->where('id', $product['id'])->update(['updated_at' => date('Y-m-d H:i:s')]);
+            $db->table('inventory_movements')->insert([
+                'branch_id' => $branchId, 'product_id' => $product['id'], 'direction' => 'in', 'quantity' => 1,
+                'unit_cost' => $product['cost_price'], 'reason' => 'Pendaftaran serial ONT/ONU ' . $serialNumber,
+                'reference' => substr('SERIAL-' . $serialNumber, 0, 80), 'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $db->transComplete();
+            if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'Serial dan stok barang gagal disimpan secara bersamaan.');
             return redirect()->to('/area/serials')->with('success', 'Serial ONT/ONU berhasil ditambahkan ke stok tersedia.');
         }
         db_connect()->table($module['table'])->insert($data);
@@ -403,38 +468,87 @@ class Workspace extends BaseController
         $qty = (float) $this->request->getPost('quantity');
         $direction = (string) $this->request->getPost('direction');
         $unitCost = (float) $this->request->getPost('unit_cost');
+        $reason = trim((string) $this->request->getPost('reason'));
+        $reference = trim((string) $this->request->getPost('reference'));
         $db = db_connect();
         $product = $db->table('products')->where('id', $productId)->get()->getRowArray();
-        if (! $product || ! $this->inBranch($product['branch_id']) || $qty <= 0 || ! in_array($direction, ['in', 'out'], true)) {
+        if (! $product || ! $this->inBranch($product['branch_id']) || $qty <= 0 || ! is_finite($qty) || ! is_finite($unitCost) || ! in_array($direction, ['in', 'out'], true) || strlen($reason) > 160 || strlen($reference) > 80) {
             return redirect()->back()->with('error', 'Periksa barang dan jumlah pergerakan stok.');
         }
         if (mynet_user('role') === 'teknisi' && $direction !== 'out') return redirect()->back()->with('error', 'Teknisi hanya dapat mencatat pemakaian barang.');
         if ($direction === 'in' && $unitCost <= 0) return redirect()->back()->with('error', 'Isi biaya modal satuan agar pembelian tercatat di buku kas.');
-        if ($direction === 'out' && $qty > (float) $product['stock_qty']) return redirect()->back()->with('error', 'Stok tidak mencukupi.');
+        if ($direction === 'out' && $reason === '') return redirect()->back()->withInput()->with('error', 'Isi alasan atau keterangan pemakaian barang.');
+        if ($direction === 'in' && $product['category'] === 'ont_onu') return redirect()->back()->withInput()->with('error', 'ONT/ONU serial masuk melalui pendaftaran serial agar stok dan daftar perangkat tetap sama.');
+        $serialIds = array_values(array_unique(array_filter(array_map('intval', (array) $this->request->getPost('serial_ids')), static fn (int $id): bool => $id > 0)));
+        if ($direction === 'out' && $product['category'] === 'ont_onu' && (floor($qty) !== $qty || count($serialIds) !== (int) $qty)) {
+            return redirect()->back()->withInput()->with('error', 'Untuk stok keluar ONT/ONU, pilih serial tersedia sebanyak jumlah perangkat.');
+        }
 
-        $db->transStart();
-        $stockUpdate = $db->table('products')->set('stock_qty', 'stock_qty ' . ($direction === 'in' ? '+' : '-') . ' ' . $qty, false)
-            ->where('id', $productId);
-        if ($direction === 'out') $stockUpdate->where('stock_qty >=', $qty);
-        $stockUpdate->update(['updated_at' => date('Y-m-d H:i:s')]);
+        $db->transBegin();
+        $lockedProduct = $db->query('SELECT * FROM products WHERE id = ? FOR UPDATE', [$productId])->getRowArray();
+        if (! $lockedProduct || ! $this->inBranch($lockedProduct['branch_id']) || ($direction === 'out' && (float) $lockedProduct['stock_qty'] < $qty)) {
+            $db->transRollback();
+            return redirect()->back()->withInput()->with('error', 'Stok berubah atau tidak mencukupi. Muat ulang lalu coba lagi.');
+        }
+
+        if ($direction === 'out' && $lockedProduct['category'] === 'ont_onu') {
+            $serialQuery = $db->table('product_serials')->whereIn('id', $serialIds)->where('product_id', $productId)->where('status', 'available');
+            if (! empty($lockedProduct['branch_id'])) $serialQuery->where('branch_id', $lockedProduct['branch_id']);
+            elseif (mynet_user('branch_id')) $serialQuery->where('branch_id', mynet_user('branch_id'));
+            $serialRows = $serialQuery->get()->getResultArray();
+            if (count($serialRows) !== count($serialIds)) {
+                $db->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Sebagian serial ONT/ONU sudah dipakai atau tidak sesuai produk.');
+            }
+            $db->table('product_serials')->whereIn('id', $serialIds)->where('status', 'available')->update(['status' => 'used', 'updated_at' => date('Y-m-d H:i:s')]);
+            if ($db->affectedRows() !== count($serialIds)) {
+                $db->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Serial ONT/ONU berubah saat dicatat. Muat ulang dan pilih ulang perangkat.');
+            }
+        }
+
+        $stockUpdate = $db->table('products')->where('id', $productId);
+        if ($direction === 'in') {
+            // Modal master memakai harga rata-rata tertimbang untuk saldo sebelum dan sesudah penerimaan.
+            $oldQty = (float) $lockedProduct['stock_qty'];
+            $newAverageCost = (($oldQty * (float) $lockedProduct['cost_price']) + ($qty * $unitCost)) / ($oldQty + $qty);
+            $stockUpdate->set('stock_qty', 'stock_qty + ' . $qty, false)->update(['cost_price' => $newAverageCost, 'updated_at' => date('Y-m-d H:i:s')]);
+        } else {
+            $stockUpdate->set('stock_qty', 'stock_qty - ' . $qty, false)->where('stock_qty >=', $qty)->update(['updated_at' => date('Y-m-d H:i:s')]);
+        }
         if ($db->affectedRows() !== 1) {
             $db->transRollback();
-            return redirect()->back()->with('error', 'Stok berubah atau tidak mencukupi. Muat ulang lalu coba lagi.');
+            return redirect()->back()->withInput()->with('error', 'Stok tidak berhasil diperbarui; muat ulang dan coba lagi.');
         }
-        $db->table('inventory_movements')->insert([
-            'branch_id' => $product['branch_id'], 'product_id' => $productId, 'direction' => $direction,
-            'quantity' => $qty, 'unit_cost' => $unitCost, 'reason' => trim((string) $this->request->getPost('reason')),
-            'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
-        ]);
-        if ($direction === 'in' && $unitCost > 0) {
+
+        if (! ($direction === 'out' && $lockedProduct['category'] === 'ont_onu')) {
+            $db->table('inventory_movements')->insert([
+                'branch_id' => $lockedProduct['branch_id'] ?: mynet_user('branch_id') ?: 0, 'product_id' => $productId, 'direction' => $direction,
+                'quantity' => $qty, 'unit_cost' => $direction === 'in' ? $unitCost : (float) $lockedProduct['cost_price'], 'reason' => $reason,
+                'reference' => $reference ?: null,
+                'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        }
+        if ($direction === 'in') {
             $db->table('finance_entries')->insert([
-                'branch_id' => $product['branch_id'], 'entry_type' => 'expense', 'category' => 'Pembelian stok',
-                'amount' => $qty * $unitCost, 'description' => 'Stok masuk: ' . $product['name'], 'reference' => 'STOCK-' . $productId,
+                'branch_id' => $lockedProduct['branch_id'] ?: mynet_user('branch_id') ?: 0, 'entry_type' => 'expense', 'category' => 'Pembelian stok',
+                'amount' => $qty * $unitCost, 'description' => 'Stok masuk: ' . $lockedProduct['name'], 'reference' => $reference ?: 'STOCK-' . $productId,
                 'transaction_date' => date('Y-m-d'), 'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
             ]);
         }
+        if ($direction === 'out' && $lockedProduct['category'] === 'ont_onu') {
+            foreach ($serialRows as $serial) {
+                $db->table('inventory_movements')->insert([
+                    'branch_id' => $serial['branch_id'], 'product_id' => $productId, 'direction' => 'out', 'quantity' => 1,
+                    'unit_cost' => (float) $lockedProduct['cost_price'], 'reason' => $reason,
+                    'reference' => $reference ?: substr('SERIAL-' . $serial['serial_number'], 0, 80),
+                    'user_id' => mynet_user('id'), 'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+        }
         $db->transComplete();
-        return redirect()->to('/area/products')->with('success', 'Stok barang berhasil diperbarui.');
+        if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'Pergerakan stok gagal disimpan secara bersamaan.');
+        return redirect()->to('/area/products')->with('success', 'Stok barang dan riwayat pergerakan berhasil diperbarui.');
     }
 
     private function manualPayment()
@@ -514,7 +628,8 @@ class Workspace extends BaseController
             elseif (in_array($slug, ['invoices', 'payments'], true)) $builder->where($table . '.customer_id', $user['customer_id'] ?? 0);
             elseif ($slug === 'work-orders') $builder->where('work_orders.id', 0);
         } elseif (! empty($user['branch_id']) && in_array($slug, ['plans', 'customers', 'routers', 'products', 'serials', 'odcs', 'odps', 'invoices', 'payments', 'finance', 'attendance', 'work-orders', 'earnings', 'earning-rules', 'vouchers', 'users'], true)) {
-            $builder->where($table . '.branch_id', $user['branch_id']);
+            if ($slug === 'products') $builder->groupStart()->where('products.branch_id', $user['branch_id'])->orWhere('products.branch_id', null)->groupEnd();
+            else $builder->where($table . '.branch_id', $user['branch_id']);
         }
         if ($slug === 'work-orders' && $user['role'] === 'teknisi') $builder->where('work_orders.technician_id', $user['id']);
         if ($slug === 'work-orders' && $user['role'] === 'sales') $builder->where('work_orders.sales_user_id', $user['id']);

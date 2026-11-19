@@ -40,6 +40,7 @@ class Dashboard extends BaseController
         $expenses = $canSeeFinance ? (float) ($expenseQuery->get()->getRow()->amount ?? 0) : 0.0;
         $daysInMonth = (int) date('t');
         $cashflowBars = array_fill(0, 12, ['income' => 0, 'expense' => 0]);
+        $cashflowAxisMax = 1;
         if ($canSeeFinance) {
             $dailyEntries = $scope($db->table('finance_entries'), 'finance_entries')
                 ->select('transaction_date, entry_type, SUM(amount) AS total')
@@ -51,15 +52,20 @@ class Dashboard extends BaseController
                 $key = $entry['entry_type'] === 'income' ? 'income' : 'expense';
                 $cashflowBars[$bucket][$key] += (float) $entry['total'];
             }
-            $peak = max(1, ...array_map(static fn (array $bar): float => max($bar['income'], $bar['expense']), $cashflowBars));
-            foreach ($cashflowBars as &$bar) {
-                $bar = [
-                    'income' => (int) round($bar['income'] / $peak * 100),
-                    'expense' => (int) round($bar['expense'] / $peak * 100),
-                ];
-            }
-            unset($bar);
+            $peak = max(0, ...array_map(static fn (array $bar): float => max($bar['income'], $bar['expense']), $cashflowBars));
+            $cashflowAxisMax = max(4, ceil($peak / 4) * 4);
         }
+        $cashflowAxisLabels = [];
+        for ($tick = 4; $tick >= 0; $tick--) $cashflowAxisLabels[] = 'Rp ' . number_format($cashflowAxisMax * $tick / 4, 0, ',', '.');
+        foreach ($cashflowBars as &$bar) {
+            $bar = [
+                'income' => (int) round($bar['income'] / $cashflowAxisMax * 100),
+                'expense' => (int) round($bar['expense'] / $cashflowAxisMax * 100),
+                'income_amount' => $bar['income'],
+                'expense_amount' => $bar['expense'],
+            ];
+        }
+        unset($bar);
         $cashflowLabels = [];
         foreach ([0, 2, 4, 6, 8, 10, 11] as $index) {
             $cashflowLabels[] = sprintf('%02d', min($daysInMonth, (int) floor($index * $daysInMonth / 12) + 1));
@@ -100,6 +106,7 @@ class Dashboard extends BaseController
             'canSeeFinance' => $canSeeFinance,
             'cashflowBars' => $cashflowBars,
             'cashflowLabels' => $cashflowLabels,
+            'cashflowAxisLabels' => $cashflowAxisLabels,
             'attendance' => $attendance,
             'menus' => mynet_menus($user['role']),
         ]);

@@ -3,158 +3,140 @@
 namespace App\Libraries;
 
 use Config\Services;
+use RouterOS\Client;
+use RouterOS\Query;
 use RuntimeException;
 
 class RouterOs
 {
     public function hotspotProfiles(array $router): array
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
-        $password = Services::encrypter()->decrypt($encrypted);
-        $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
-        try {
-            $response = $client->request('GET', $baseUrl . '/rest/ip/hotspot/user/profile', [
-                'auth' => [$router['username'], $password], 'headers' => ['Accept' => 'application/json'],
-            ]);
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS mengembalikan HTTP ' . $response->getStatusCode() . '.');
-            $profiles = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-            if (! is_array($profiles)) throw new RuntimeException('Daftar profil MikroTik tidak valid.');
-            return array_values(array_map(static function (array $profile): array {
-                $comment = trim((string) ($profile['comment'] ?? ''));
-                $price = preg_match('/^[0-9]{1,14}$/', $comment) ? (int) $comment : null;
-                return ['name' => (string) ($profile['name'] ?? ''), 'comment' => $comment, 'price' => $price];
-            }, array_filter($profiles, static fn ($item): bool => is_array($item) && ! empty($item['name']))));
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Gagal membaca profil hotspot MikroTik: ' . $e->getMessage(), 0, $e);
-        }
+        $profiles = $this->query($router, '/ip/hotspot/user/profile/print');
+        return array_values(array_map(static function (array $profile): array {
+            $comment = trim((string) ($profile['comment'] ?? ''));
+            return [
+                'name' => (string) ($profile['name'] ?? ''),
+                'comment' => $comment,
+                'price' => preg_match('/^[0-9]{1,14}$/', $comment) ? (int) $comment : null,
+            ];
+        }, array_filter($profiles, static fn ($item): bool => is_array($item) && ! empty($item['name']))));
     }
 
     public function testConnection(array $router): string
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
-        try {
-            $password = Services::encrypter()->decrypt($encrypted);
-            $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
-            $response = $client->request('GET', $baseUrl . '/rest/system/identity', [
-                'auth' => [$router['username'], $password], 'headers' => ['Accept' => 'application/json'],
-            ]);
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS mengembalikan HTTP ' . $response->getStatusCode() . '.');
-            $identity = json_decode((string) $response->getBody(), true);
-            return (string) ($identity[0]['name'] ?? $identity['name'] ?? $router['name']);
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Uji koneksi RouterOS gagal: ' . $e->getMessage(), 0, $e);
-        }
+        $identity = $this->query($router, '/system/identity/print');
+        return (string) ($identity[0]['name'] ?? $router['name'] ?? 'RouterOS');
+    }
+
+    public function monitor(array $router): array
+    {
+        $identity = $this->query($router, '/system/identity/print');
+        $resource = $this->query($router, '/system/resource/print');
+        return [
+            'identity' => (string) ($identity[0]['name'] ?? $router['name']),
+            'uptime' => (string) ($resource[0]['uptime'] ?? ''),
+            'cpu' => isset($resource[0]['cpu-load']) ? (int) $resource[0]['cpu-load'] : null,
+            'memory_used' => max(0, (int) ($resource[0]['total-memory'] ?? 0) - (int) ($resource[0]['free-memory'] ?? 0)),
+            'memory_total' => (int) ($resource[0]['total-memory'] ?? 0),
+        ];
     }
 
     public function systemResource(array $router): array
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
-        try {
-            $client = Services::curlrequest(['timeout' => 5, 'http_errors' => false, 'verify' => (bool) ($router['verify_ssl'] ?? true)]);
-            $response = $client->request('GET', $baseUrl . '/rest/system/resource', [
-                'auth' => [$router['username'], Services::encrypter()->decrypt($encrypted)], 'headers' => ['Accept' => 'application/json'],
-            ]);
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS mengembalikan HTTP ' . $response->getStatusCode() . '.');
-            $resource = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-            if (isset($resource[0]) && is_array($resource[0])) $resource = $resource[0];
-            if (! is_array($resource) || ! isset($resource['uptime'])) throw new RuntimeException('Data system resource RouterOS tidak lengkap.');
-            return $resource;
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Gagal membaca system resource: ' . $e->getMessage(), 0, $e);
-        }
+        $result = $this->query($router, '/system/resource/print');
+        if (! isset($result[0]['uptime'])) throw new RuntimeException('Data system resource RouterOS tidak lengkap.');
+        return $result[0];
     }
 
     public function createHotspotUser(array $router, string $username, string $password, string $profile): void
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) {
-            throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        }
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
-        $routerPassword = Services::encrypter()->decrypt($encrypted);
-        $verify = (bool) $router['verify_ssl'];
-        try {
-            $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => $verify]);
-            $response = $client->request('PUT', $baseUrl . '/rest/ip/hotspot/user', [
-                'auth' => [$router['username'], $routerPassword],
-                'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json'],
-                'body' => json_encode(['name' => $username, 'password' => $password, 'profile' => $profile], JSON_THROW_ON_ERROR),
-            ]);
-            if ((int) $response->getStatusCode() < 200 || (int) $response->getStatusCode() >= 300) {
-                throw new RuntimeException('RouterOS menolak pembuatan voucher (HTTP ' . $response->getStatusCode() . ').');
-            }
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Sinkronisasi RouterOS gagal: ' . $e->getMessage(), 0, $e);
-        }
+        $this->query($router, '/ip/hotspot/user/add', ['name' => $username, 'password' => $password, 'profile' => $profile]);
     }
 
     public function provisionPppoe(array $router, string $username, string $password, string $profile, string $mode): void
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
-        $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
-        $options = ['auth' => [$router['username'], Services::encrypter()->decrypt($encrypted)], 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json']];
-        $url = $baseUrl . '/rest/ppp/secret';
-        try {
-            $lookup = $client->request('GET', $url . '?name=' . rawurlencode($username), $options);
-            if ($lookup->getStatusCode() < 200 || $lookup->getStatusCode() >= 300) throw new RuntimeException('Gagal membaca secret PPP pada RouterOS.');
-            $found = json_decode((string) $lookup->getBody(), true, 512, JSON_THROW_ON_ERROR);
-            $existing = is_array($found) ? ($found[0] ?? null) : null;
-            $payload = ['name' => $username, 'password' => $password, 'service' => 'pppoe', 'profile' => $profile];
-            if ($mode === 'sync') {
-                if (! is_array($existing) || empty($existing['.id'])) throw new RuntimeException('Username PPPoE belum ada di router untuk disinkronkan.');
-                $response = $client->request('PATCH', $url . '/' . rawurlencode((string) $existing['.id']), $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
-            } else {
-                if (is_array($existing)) throw new RuntimeException('Username PPPoE sudah ada di router; pilih Sinkronisasi.');
-                $response = $client->request('PUT', $url, $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
-            }
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS menolak perubahan PPPoE (HTTP ' . $response->getStatusCode() . ').');
-        } catch (\Throwable $e) {
-            throw new RuntimeException('Provisioning PPPoE gagal: ' . $e->getMessage(), 0, $e);
+        $secrets = $this->query($router, '/ppp/secret/print');
+        $existing = null;
+        foreach ($secrets as $secret) {
+            if (($secret['name'] ?? '') === $username) { $existing = $secret; break; }
         }
+        if ($mode === 'sync' && empty($existing['.id'])) throw new RuntimeException('Username PPPoE belum ada di router untuk disinkronkan.');
+        if ($mode !== 'sync' && $existing) throw new RuntimeException('Username PPPoE sudah ada di router; pilih Sinkronisasi.');
+        $attrs = ['name' => $username, 'password' => $password, 'service' => 'pppoe', 'profile' => $profile];
+        if ($existing) $attrs['.id'] = $existing['.id'];
+        $this->query($router, $existing ? '/ppp/secret/set' : '/ppp/secret/add', $attrs);
     }
 
     public function syncStaticIpQueue(array $router, string $queueName, string $ipAddress, string $downloadSpeed, string $uploadSpeed): void
     {
-        $baseUrl = rtrim((string) $router['base_url'], '/');
-        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
-        $encrypted = base64_decode((string) $router['password_encrypted'], true);
-        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
+        $queues = $this->query($router, '/queue/simple/print');
+        $existing = null;
+        foreach ($queues as $queue) {
+            if (($queue['name'] ?? '') === $queueName) { $existing = $queue; break; }
+        }
         $target = $ipAddress . (str_contains($ipAddress, ':') ? '/128' : '/32');
-        $payload = [
-            'name' => $queueName,
-            'target' => $target,
+        $attrs = [
+            'name' => $queueName, 'target' => $target,
             'max-limit' => $this->routerRate($uploadSpeed) . '/' . $this->routerRate($downloadSpeed),
             'comment' => 'Mynet static IP ' . $queueName,
         ];
-        $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
-        $options = ['auth' => [$router['username'], Services::encrypter()->decrypt($encrypted)], 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json']];
-        $url = $baseUrl . '/rest/queue/simple';
+        if ($existing) $attrs['.id'] = $existing['.id'];
+        $this->query($router, $existing ? '/queue/simple/set' : '/queue/simple/add', $attrs);
+    }
+
+    private function query(array $router, string $path, array $attributes = []): array
+    {
+        $settings = $this->connectionSettings($router);
+        $host = trim((string) $settings['host']);
+        $port = (int) $settings['port'];
+        if ($host === '' || $port < 1 || $port > 65535) throw new RuntimeException('Alamat atau port API RouterOS tidak valid.');
+
         try {
-            $lookup = $client->request('GET', $url . '?name=' . rawurlencode($queueName), $options);
-            if ($lookup->getStatusCode() < 200 || $lookup->getStatusCode() >= 300) throw new RuntimeException('Gagal membaca Simple Queue pada RouterOS.');
-            $found = json_decode((string) $lookup->getBody(), true, 512, JSON_THROW_ON_ERROR);
-            $existing = is_array($found) ? ($found[0] ?? null) : null;
-            if (is_array($existing) && ! empty($existing['.id'])) {
-                $response = $client->request('PATCH', $url . '/' . rawurlencode((string) $existing['.id']), $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
-            } else {
-                $response = $client->request('PUT', $url, $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
-            }
-            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS menolak sinkronisasi Simple Queue (HTTP ' . $response->getStatusCode() . ').');
+            $ssl = ! empty($settings['ssl']);
+            $client = new Client([
+                'host' => $host,
+                'user' => (string) $settings['username'],
+                'pass' => (string) $settings['password'],
+                'port' => $port,
+                'ssl' => $ssl,
+                'ssl_options' => ['verify_peer' => (bool) $settings['verify_ssl'], 'verify_peer_name' => (bool) $settings['verify_ssl'], 'allow_self_signed' => ! (bool) $settings['verify_ssl']],
+                'timeout' => min(8, max(2, (int) env('MIKROTIK_TIMEOUT', 5))),
+                'socket_timeout' => 8,
+                'attempts' => 1,
+                'throw_timeout_exception' => true,
+            ]);
+            return $client->query(new Query($path, $attributes))->read();
         } catch (\Throwable $e) {
-            throw new RuntimeException('Sinkronisasi Simple Queue gagal: ' . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Koneksi API RouterOS gagal: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    public function connectionSettings(array $router): array
+    {
+        $encrypted = base64_decode((string) ($router['connection_encrypted'] ?? ''), true);
+        if ($encrypted !== false && $encrypted !== '') {
+            try {
+                $settings = json_decode(Services::encrypter()->decrypt($encrypted), true, 512, JSON_THROW_ON_ERROR);
+                if (is_array($settings)) return $settings;
+            } catch (\Throwable $e) {
+                throw new RuntimeException('Konfigurasi router terenkripsi tidak dapat dibaca. Periksa encryption key aplikasi.', 0, $e);
+            }
+        }
+
+        // Fallback for records created before encrypted connection settings migration.
+        $encryptedPassword = base64_decode((string) ($router['password_encrypted'] ?? ''), true);
+        if ($encryptedPassword === false) throw new RuntimeException('Kredensial router tidak valid.');
+        try {
+            return [
+                'host' => (string) ($router['host'] ?? parse_url((string) ($router['base_url'] ?? ''), PHP_URL_HOST) ?? ''),
+                'port' => (int) ($router['api_port'] ?? parse_url((string) ($router['base_url'] ?? ''), PHP_URL_PORT) ?? 8728),
+                'username' => (string) ($router['username'] ?? ''),
+                'password' => Services::encrypter()->decrypt($encryptedPassword),
+                'ssl' => true,
+                'verify_ssl' => (bool) ($router['verify_ssl'] ?? true),
+            ];
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Kredensial router tidak valid.', 0, $e);
         }
     }
 

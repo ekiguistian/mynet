@@ -317,6 +317,74 @@
     }
 }
 
+/* Accessible dashboard and inventory type scale. Keep secondary text readable on light surfaces. */
+body.app-shell { font-size: 16px; }
+.brand-copy small, .workspace-label, .nav-caption, .sidebar-user-copy small { font-size: 12px; }
+.nav-caption { color: #b1bfd2; letter-spacing: .08em; padding-top: 10px; }
+.nav-link { font-size: 14px; }
+.support-card strong, .sidebar-user-copy strong { font-size: 14px; }
+.support-card p, .support-card a, .sidebar-user-copy small { color: #d0d9e7; font-size: 12px; }
+.topbar-breadcrumb { font-size: 14px; color: #58667a; }
+.branch-pill, .topbar-profile { font-size: 13px; }
+.eyebrow { font-size: 12px; color: #536176; }
+.page-heading p { font-size: 14px; color: #58667a; }
+.button { font-size: 14px; }
+.button-small { font-size: 13px; }
+.button-full { font-size: 14px; }
+.stat-label { font-size: 14px; color: #536176; }
+.stat-foot { font-size: 12px; color: #536176; }
+.panel-heading h2 { font-size: 18px; }
+.panel-heading p { font-size: 13px; color: #58667a; }
+.cash-summary small, .change-positive, .change-neutral { font-size: 12px; color: #536176; }
+.chart-y-labels, .chart-x-labels, .chart-legend { font-size: 12px; color: #536176; }
+.chart-y-labels { min-width: 108px; }
+.operation-copy strong, .operation-value { font-size: 14px; }
+.operation-copy small, .operation-value small, .operation-status { font-size: 12px; color: #536176; }
+.attendance-action, .text-link, .operation-link { font-size: 13px; }
+.data-table th { font-size: 12px; color: #536176; }
+.data-table td { font-size: 14px; color: #435168; }
+.status-pill { font-size: 12px; }
+.row-action-button { font-size: 13px; padding: 7px 10px; }
+.row-action-button { color: #214d9f; background: #eaf0fb; }
+.row-action-button.muted { color: #435168; background: #edf0f4; }
+.button-primary { background: #245de0; }
+.button-primary:hover { background: #174bbf; }
+.status-paid, .status-ready, .status-active, .status-present, .status-in { color: #176342; }
+.status-unpaid, .status-pending, .status-open, .status-assigned { color: #805400; }
+.status-partial, .status-in_progress { color: #214f9c; }
+.status-overdue, .status-expired, .status-failed, .status-sync_failed, .status-cancelled, .status-inactive, .status-out, .status-expense { color: #a4343b; }
+.empty-state strong { font-size: 15px; }
+.empty-state p { font-size: 14px; color: #58667a; }
+.table-search input { font-size: 14px; color: #344258; }
+.table-search input::placeholder, .form-field input::placeholder, .manual-payment-form input::placeholder { color: #657286; opacity: 1; }
+.form-field label, .manual-payment-form label { font-size: 14px; color: #435168; }
+.form-field input, .form-field select, .form-field textarea, .manual-payment-form input, .manual-payment-form select { font-size: 14px; }
+.field-help { font-size: 12px; color: #58667a; }
+.flash { font-size: 14px; }
+.inventory-actions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+.inventory-form-panel { min-width: 0; }
+.inventory-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; align-items: end; }
+.inventory-form > .form-field:first-of-type, .stock-serial-field { grid-column: 1 / -1; }
+.inventory-form > button { min-height: 40px; }
+.stock-serial-field[hidden] { display: none !important; }
+.stock-serial-field select { height: auto !important; min-height: 92px; padding: 7px 10px; }
+.inventory-history-panel { margin-top: 14px; }
+.inventory-history-panel .panel-heading { margin-bottom: 14px; }
+.inventory-search, .inventory-history-panel .table-search { width: min(100%, 340px); }
+.inventory-search button, .inventory-history-panel .table-search button { border: 0; background: #245de0; color: #fff; border-radius: 5px; padding: 6px 10px; font-size: 13px; }
+.pager-wrap { padding: 16px 4px; color: #435168; }
+.pager-wrap nav { display: flex; justify-content: flex-end; }
+.pager-wrap ul { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.pager-wrap a, .pager-wrap strong { display: block; min-width: 36px; padding: 8px 10px; text-align: center; border: 1px solid #d7deea; border-radius: 6px; font-size: 13px; }
+.pager-wrap strong { color: #fff; background: #245de0; border-color: #245de0; }
+@media (max-width: 720px) {
+    .inventory-actions-grid { grid-template-columns: 1fr; }
+    .inventory-form { grid-template-columns: 1fr; }
+    .inventory-form > .form-field:first-of-type, .stock-serial-field { grid-column: auto; }
+    .chart-y-labels { min-width: 94px; }
+    .cash-summary small { font-size: 12px; }
+}
+
 .logout-dot {
     border: 0;
     background: transparent;
@@ -413,3 +481,55 @@
         padding: 14px;
     }
 }
+
+/* Dashboard and shared application typography: readable minimum sizes and stronger contrast. */
+.app-shell { color: #263449; }
+.app-shell .sidebar .brand-copy small,
+.app-shell .workspace-label,
+.app-shell .nav-caption,
+.app-shell .nav-count,
+.app-shell .support-card p,
+.app-shell .support-card a,
+.app-shell .sidebar-user-copy small,
+.app-shell .topbar-breadcrumb,
+.app-shell .branch-pill,
+.app-shell .eyebrow,
+.app-shell .field-help,
+.app-shell .live-badge,
+.app-shell .status-pill,
+.app-shell .router-last-check { font-size: 12px !important; }
+.app-shell .nav-caption { color: #b1bfd2; }
+.app-shell .nav-link,
+.app-shell .support-card strong,
+.app-shell .sidebar-user-copy strong,
+.app-shell .topbar-profile,
+.app-shell .page-heading p,
+.app-shell .stat-foot,
+.app-shell .operation-copy small,
+.app-shell .cash-summary small,
+.app-shell .text-link { font-size: 14px !important; }
+.app-shell .button,
+.app-shell button,
+.app-shell .row-action-button { font-size: 14px; }
+.app-shell .stat-label,
+.app-shell .panel-heading p,
+.app-shell .operation-link,
+.app-shell .data-table th,
+.app-shell .table-search input,
+.app-shell .form-field label,
+.app-shell .form-field > span,
+.app-shell .form-field input,
+.app-shell .form-field select,
+.app-shell .form-field textarea { color: #435168; }
+.app-shell input::placeholder,
+.app-shell textarea::placeholder { color: #657286 !important; opacity: 1; }
+.app-shell .status-pill { font-weight: 600; }
+.app-shell .stat-label,
+.app-shell .data-table th,
+.app-shell .table-search span,
+.app-shell .form-field small,
+.app-shell .field-help,
+.app-shell .empty-state p { font-size: 12px !important; }
+.app-shell .form-field label,
+.app-shell .form-field > span,
+.app-shell .stat-foot { font-size: 14px !important; }

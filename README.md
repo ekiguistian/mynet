@@ -29,14 +29,16 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 
 ### MikroTik dan voucher hotspot
 
-- Detail router disimpan per cabang: nama, IP Public/hostname VPN, port HTTPS/REST API, username, dan password terenkripsi. Halaman router memperbarui status koneksi, uptime, CPU, dan penggunaan memori setiap 60 detik.
+- Detail router disimpan per cabang. IP/host, port, username, dan password API dienkripsi dalam database. SSL dan verifikasi sertifikat dapat dipilih pengguna sesuai konfigurasi RouterOS. Daftar router menampilkan identity, uptime, CPU, dan memori dalam satu baris per router, diperbarui setiap 60 detik. Library RouterOS API PHP ada di `app/ThirdParty/RouterOS/src`.
 - Generate 1–100 voucher dengan username dan kata sandi acak.
-- Voucher dapat disimpan untuk ekspor/pemakaian manual atau langsung dibuat sebagai user hotspot di RouterOS v7 melalui REST API.
+- Voucher dapat disimpan untuk ekspor/pemakaian manual atau langsung dibuat sebagai user hotspot di RouterOS melalui native API.
 - Status `sync_failed` dicatat bila perangkat menolak atau tidak dapat dijangkau; kegagalan tidak menghapus voucher lokal.
 - Profil hotspot dan harganya dibaca langsung dari router. Harga diambil hanya jika komentar profil berupa angka bulat.
-- Akun PPPoE dapat dibuat atau disinkronkan pada menu pelanggan melalui RouterOS REST API. Kata sandi PPPoE hanya dikirim ke router dan tidak disimpan oleh aplikasi.
+- Akun PPPoE dapat dibuat atau disinkronkan pada menu pelanggan melalui RouterOS native API. Kata sandi PPPoE hanya dikirim ke router dan tidak disimpan oleh aplikasi.
 - IP static disinkronkan sebagai Simple Queue RouterOS dengan target `/32` untuk IPv4 atau `/128` untuk IPv6. Nama queue memakai ID pelanggan (`MYNET-<ID>`), dan batas upload/download mengikuti kecepatan paket.
 - Pengelolaan SN ONT/ONU dan ODC, jalur/core warna, ODP, serta port pelanggan tersedia per cabang. Satu ODC menampung 4–8 ODP; setiap ODP dibuat dengan minimal 8 port dan port ditempati saat pelanggan didaftarkan.
+- Stok ONT/ONU mengikuti jumlah serial berstatus tersedia; serial masuk dan pemakaian/pemasangan tercatat pada riwayat mutasi. Penerimaan barang non-serial menghitung harga modal rata-rata tertimbang dan mencatat biaya pembelian ke buku kas.
+- Menu stok mendukung pencarian dan pagination barang serta riwayat mutasi. Mutasi keluar dapat dicatat teknisi/admin, dengan validasi stok dan pilihan serial untuk perangkat ONT/ONU.
 
 ### Persediaan dan keuangan
 
@@ -58,7 +60,7 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 
 ### Integrasi eksternal
 
-- **MikroTik RouterOS v7 REST API** untuk profil voucher Hotspot serta pembuatan/sinkronisasi secret PPPoE. Router dan kredensialnya dikonfigurasi per cabang di aplikasi.
+- **MikroTik RouterOS API** untuk profil voucher Hotspot serta pembuatan/sinkronisasi secret PPPoE dan Simple Queue. Router dan kredensialnya dikonfigurasi per cabang di aplikasi.
 - **NgirimWA** melalui endpoint kirim pesan dan header API key.
 - **Fonnte** (kadang ditulis Fonte) melalui endpoint kirim pesan dan token perangkat.
 - **Tripay** untuk membuat transaksi pembayaran tertutup dan menerima callback.
@@ -88,11 +90,11 @@ Dependensi npm dipakai untuk pengembangan lokal. Setelah clone, jalankan `npm ci
 
 ## Persyaratan
 
-- PHP 8.2 atau lebih baru dengan ekstensi `intl`, `mbstring`, `mysqli`, `curl`, `openssl`, `json`, dan `fileinfo`.
+- PHP 8.2 atau lebih baru dengan ekstensi `intl`, `mbstring`, `mysqli`, `curl`, `openssl`, `json`, `fileinfo`, dan `sockets`.
 - Ekstensi PHP `dom` diperlukan oleh Dompdf untuk PDF invoice.
 - Composer 2.
 - MySQL/MariaDB.
-- RouterOS v7 dengan REST API aktif untuk sinkronisasi voucher.
+- RouterOS dengan layanan API aktif (port umumnya `8728`) atau API SSL (`8729`) untuk sinkronisasi voucher, PPPoE, dan Simple Queue.
 - URL HTTPS publik untuk callback payment gateway pada lingkungan produksi.
 
 ## Deploy produksi di aaPanel (Nginx)
@@ -373,9 +375,9 @@ Kredensial juga dapat dimasukkan dari **Pengaturan → Integrasi API**. Halaman 
 
 ## Konfigurasi RouterOS
 
-Gunakan RouterOS v7, aktifkan layanan HTTPS `www-ssl`, pasang sertifikat yang dipercaya server aplikasi, dan buat user khusus REST dengan izin minimum untuk membaca resource sistem serta mengelola user Hotspot, PPP secrets, dan Simple Queue sesuai fitur yang digunakan. Saat menambah router, masukkan IP Public atau hostname VPN dan **port layanan HTTPS/REST** (umumnya port `www-ssl`, sering `443`; bukan port API biner `8728`). Batasi `available-from`/firewall router ke alamat server aplikasi atau VPN. Gunakan HTTPS dan biarkan verifikasi sertifikat aktif untuk penggunaan produksi.
+Aktifkan layanan API RouterOS sesuai kebijakan jaringan Anda dan buat akun aplikasi dengan hak akses minimum. Masukkan IP/host, port, username, password, pilihan SSL, dan pilihan verifikasi sertifikat pada menu Router; samakan nilainya dengan konfigurasi RouterOS. Batasi akses jaringan router ke server aplikasi atau VPN. Daftar router mendukung edit dan hapus; router yang masih terkait pelanggan atau voucher tidak dapat dihapus.
 
-Tambahkan router melalui menu **Router MikroTik** dengan endpoint seperti `https://alamat-router:443`, username API, password, dan cabang. Pilih router pada form generate voucher agar akun dibuat di router tersebut. Tanpa router dipilih, aplikasi hanya membuat voucher lokal.
+Tambahkan router melalui menu **Router MikroTik** dengan memasukkan host/IP, port API, username, password, dan opsi SSL sesuai layanan yang diaktifkan pada router. Pilih router pada form generate voucher agar akun dibuat di router tersebut. Tanpa router dipilih, aplikasi hanya membuat voucher lokal.
 
 ## Struktur penting
 
@@ -442,7 +444,7 @@ Tiket maintenance tersedia untuk pelanggan, admin, NOC, dan teknisi. Pelanggan m
 ## Referensi API
 
 - [CodeIgniter 4](https://codeigniter.com/user_guide/)
-- [MikroTik RouterOS REST API](https://manual.mikrotik.com/docs/developer-guides/rest-api/)
+- [RouterOS API manual](https://help.mikrotik.com/docs/display/ROS/API)
 - [NgirimWA API](https://panduan.ngirimwa.com/api/kirim-pesan)
 - [Fonnte: kirim pesan API](https://docs.fonnte.com/api-send-message/)
 - [Fonnte: melihat ID grup WhatsApp](https://docs.fonnte.com/api-get-whatsapp-group-list/)

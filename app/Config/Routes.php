@@ -12,6 +12,9 @@ $routes->group('', ['filter' => 'auth'], static function ($routes): void {
     $routes->post('/logout', 'Auth::logout');
     $routes->get('/dashboard', 'Dashboard::index');
     $routes->get('/routers/status', 'RouterMonitoring::status');
+    $routes->get('/routers/(:num)/edit', 'Routers::edit/$1');
+    $routes->post('/routers/(:num)/update', 'Routers::update/$1');
+    $routes->post('/routers/(:num)/delete', 'Routers::delete/$1');
     $routes->get('/version', 'Version::index');
     $routes->post('/version/migrate', 'Version::migrate');
     $routes->get('/area/(:segment)', 'Workspace::index/$1');
