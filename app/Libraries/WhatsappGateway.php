@@ -7,9 +7,10 @@ use RuntimeException;
 
 class WhatsappGateway
 {
-    public function send(string $to, string $message, string $reference = ''): array
+    public function send(string $to, string $message, string $reference = '', ?int $branchId = null): array
     {
-        $config = (new IntegrationConfig())->get('whatsapp');
+        $integrations = new IntegrationConfig();
+        $config = $branchId ? $integrations->getBranchWhatsapp($branchId) : $integrations->get('whatsapp');
         $provider = strtolower((string) ($config['provider'] ?? ''));
         if ($provider === 'ngirimwa') {
             $key = (string) ($config['ngirimwa_api_key'] ?? '');

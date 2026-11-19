@@ -14,6 +14,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes): void {
     $routes->get('/version', 'Version::index');
     $routes->post('/version/migrate', 'Version::migrate');
     $routes->get('/area/(:segment)', 'Workspace::index/$1');
+    $routes->get('/area/customers/generate-id', 'Workspace::generateCustomerId');
     $routes->get('/area/(:segment)/baru', 'Workspace::newForm/$1');
     $routes->post('/area/(:segment)/simpan', 'Workspace::store/$1');
     $routes->post('/area/(:segment)/aksi', 'Workspace::action/$1');
@@ -21,6 +22,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes): void {
     $routes->post('/billing/pay/(:num)', 'Billing::pay/$1');
     $routes->post('/attendance/toggle', 'Attendance::toggle');
     $routes->post('/vouchers/generate', 'Vouchers::generate');
+    $routes->get('/vouchers/profiles/(:num)', 'Vouchers::profiles/$1');
     $routes->post('/work-orders/create', 'WorkOrders::create');
     $routes->post('/work-orders/(:num)/status', 'WorkOrders::changeStatus/$1');
     $routes->post('/earnings/(:num)/pay', 'WorkOrders::payEarning/$1');
@@ -32,6 +34,7 @@ $routes->group('', ['filter' => 'auth'], static function ($routes): void {
     $routes->post('/settings/api-keys/revoke', 'SystemSettings::revokeApiKey');
     $routes->get('/integrations', 'Integrations::index');
     $routes->post('/integrations/save/(:segment)', 'Integrations::save/$1');
+    $routes->post('/integrations/save-branch-whatsapp', 'Integrations::saveBranchWhatsapp');
     $routes->post('/integrations/test-whatsapp', 'Integrations::testWhatsApp');
     $routes->post('/integrations/test-payment', 'Integrations::testPayment');
     $routes->post('/integrations/router-test/(:num)', 'Integrations::testRouter/$1');

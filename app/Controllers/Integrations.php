@@ -22,13 +22,51 @@ class Integrations extends BaseController
         }
         $routerQuery = db_connect()->table('routers')->select('id, name, branch_id, active')->orderBy('name');
         if (mynet_user('branch_id')) $routerQuery->where('branch_id', mynet_user('branch_id'));
+        $branches = db_connect()->table('branches')->select('id, name')->where('status', 'active')->orderBy('name')->get()->getResultArray();
+        if (mynet_user('branch_id')) $branches = array_values(array_filter($branches, static fn (array $branch): bool => (int) $branch['id'] === (int) mynet_user('branch_id')));
+        $branchWhatsapp = [];
+        foreach ($branches as $branch) {
+            $branchConfig = $config->getBranchWhatsapp((int) $branch['id']);
+            $branchWhatsapp[] = [
+                'id' => (int) $branch['id'], 'name' => $branch['name'], 'provider' => $branchConfig['provider'] ?? 'ngirimwa',
+                'ngirimwa_saved' => ! empty($branchConfig['ngirimwa_api_key']), 'fonnte_saved' => ! empty($branchConfig['fonnte_token']),
+                'technician_group_id' => $branchConfig['technician_group_id'] ?? '', 'finance_group_id' => $branchConfig['finance_group_id'] ?? '',
+                'admin_group_id' => $branchConfig['admin_group_id'] ?? '',
+            ];
+        }
         return view('settings/integrations', [
             'title' => 'Integrasi API', 'whatsapp' => $wa, 'payment' => $payment, 'secretStatus' => $secretStatus,
             'routers' => $routerQuery->get()->getResultArray(),
-            'branches' => db_connect()->table('branches')->select('id, name')->where('status', 'active')->orderBy('name')->get()->getResultArray(),
+            'branches' => $branches, 'branchWhatsapp' => $branchWhatsapp,
             'templates' => db_connect()->table('message_templates')->orderBy('name')->get()->getResultArray(),
             'menus' => mynet_menus(mynet_user('role')),
         ]);
+    }
+
+    public function saveBranchWhatsapp()
+    {
+        if ($denied = $this->authorize()) return $denied;
+        $branchId = (int) $this->request->getPost('branch_id');
+        $branch = db_connect()->table('branches')->where('id', $branchId)->where('status', 'active')->get()->getRowArray();
+        if (! $branch || (mynet_user('branch_id') && (int) $branch['id'] !== (int) mynet_user('branch_id'))) return redirect()->back()->with('error', 'Cabang tidak ditemukan atau Anda tidak memiliki akses.');
+        $config = new IntegrationConfig();
+        $existing = $config->getBranchWhatsapp($branchId);
+        $provider = strtolower(trim((string) $this->request->getPost('provider')));
+        if (! in_array($provider, ['ngirimwa', 'fonnte'], true)) return redirect()->back()->with('error', 'Pilih gateway WhatsApp yang valid.');
+        $data = [
+            'provider' => $provider,
+            'ngirimwa_api_key' => trim((string) $this->request->getPost('ngirimwa_api_key')) ?: ($existing['ngirimwa_api_key'] ?? ''),
+            'fonnte_token' => trim((string) $this->request->getPost('fonnte_token')) ?: ($existing['fonnte_token'] ?? ''),
+        ];
+        $required = $provider === 'fonnte' ? 'fonnte_token' : 'ngirimwa_api_key';
+        if ($data[$required] === '') return redirect()->back()->with('error', 'Token gateway untuk penyedia terpilih wajib diisi.');
+        foreach (['technician_group_id', 'finance_group_id', 'admin_group_id'] as $field) {
+            $value = trim((string) $this->request->getPost($field));
+            if ($value !== '' && ! preg_match('/^[0-9-]{8,40}@g\\.us$/', $value)) return redirect()->back()->with('error', 'ID grup WhatsApp harus berakhiran @g.us.');
+            $data[$field] = $value;
+        }
+        $config->saveBranchWhatsapp($branchId, $data);
+        return redirect()->to('/integrations')->with('success', 'Gateway WhatsApp cabang berhasil diperbarui.');
     }
 
     public function save(string $section)

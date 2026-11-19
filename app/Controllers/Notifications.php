@@ -18,7 +18,7 @@ class Notifications extends BaseController
         $message = 'Halo ' . $row['full_name'] . ', tagihan internet ' . $row['invoice_no'] . ' periode ' . $row['period']
             . ' sebesar ' . mynet_money($row['total']) . ' jatuh tempo ' . $row['due_date'] . '. Mohon lakukan pembayaran. Terima kasih.';
         try {
-            $result = (new WhatsappGateway())->send($row['phone'], $message, $row['invoice_no']);
+            $result = (new WhatsappGateway())->send($row['phone'], $message, $row['invoice_no'], (int) $row['branch_id']);
             $db->table('message_logs')->insert([
                 'customer_id' => $row['customer_id'], 'provider' => $result['provider'], 'recipient' => $row['phone'],
                 'message' => $message, 'status' => 'queued', 'provider_reference' => $result['reference'], 'created_at' => date('Y-m-d H:i:s'),

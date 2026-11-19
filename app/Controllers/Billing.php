@@ -18,16 +18,15 @@ class Billing extends BaseController
             ->join('plans p', 'p.id = c.plan_id', 'left')->where('c.status', 'active');
         if (! empty(mynet_user('branch_id'))) $customers->where('c.branch_id', mynet_user('branch_id'));
         $list = $customers->get()->getResultArray();
-        $due = (new \DateTimeImmutable($period . '-01'))->modify('first day of next month')->setDate(
-            (int) (new \DateTimeImmutable($period . '-01'))->modify('first day of next month')->format('Y'),
-            (int) (new \DateTimeImmutable($period . '-01'))->modify('first day of next month')->format('m'), 10
-        )->format('Y-m-d');
+        $dueMonth = (new \DateTimeImmutable($period . '-01'))->modify('first day of next month');
         $created = 0;
         $db->transStart();
         foreach ($list as $customer) {
             if ($db->table('invoices')->where('customer_id', $customer['id'])->where('period', $period)->countAllResults() > 0) continue;
             $amount = (float) ($customer['monthly_price'] ?? 0);
             if ($amount <= 0) continue;
+            $dueDay = min(max((int) ($customer['due_day'] ?? 10), 1), (int) $dueMonth->format('t'));
+            $due = $dueMonth->setDate((int) $dueMonth->format('Y'), (int) $dueMonth->format('m'), $dueDay)->format('Y-m-d');
             $invoiceNo = 'INV-' . str_replace('-', '', $period) . '-' . $customer['customer_code'];
             $db->table('invoices')->insert([
                 'branch_id' => $customer['branch_id'], 'customer_id' => $customer['id'], 'invoice_no' => $invoiceNo,
@@ -53,14 +52,14 @@ class Billing extends BaseController
             return $this->response->setStatusCode(404)->setBody('Tagihan tidak ditemukan.');
         }
         if ($invoice['status'] === 'paid') return redirect()->back()->with('success', 'Tagihan ini sudah lunas.');
-        $pending = $db->table('payments')->where('invoice_id', $invoiceId)->where('provider', strtolower((string) env('PAYMENT_PROVIDER')))
+        $provider = strtolower((string) ((new IntegrationConfig())->get('payment')['provider'] ?? ''));
+        $pending = $db->table('payments')->where('invoice_id', $invoiceId)->where('provider', $provider)
             ->where('status', 'pending')->where('checkout_url !=', '')->orderBy('id', 'DESC')->get()->getRowArray();
         if ($pending && $pending['checkout_url']) return redirect()->to($pending['checkout_url']);
         $customer = $db->table('customers')->where('id', $invoice['customer_id'])->get()->getRowArray();
         $paid = (float) $db->table('payments')->selectSum('amount')->where('invoice_id', $invoiceId)->where('status', 'paid')->get()->getRow()->amount;
         $amount = (float) $invoice['total'] - $paid;
         if ($amount <= 0) return redirect()->back()->with('error', 'Tidak ada sisa tagihan untuk dibayar.');
-        $provider = strtolower((string) ((new IntegrationConfig())->get('payment')['provider'] ?? ''));
         $reference = 'MN-' . date('ymdHis') . '-' . strtoupper(bin2hex(random_bytes(3)));
         $db->table('payments')->insert([
             'branch_id' => $invoice['branch_id'], 'invoice_id' => $invoiceId, 'customer_id' => $invoice['customer_id'],

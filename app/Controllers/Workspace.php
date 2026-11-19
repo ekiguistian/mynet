@@ -7,11 +7,15 @@ use Config\Services;
 class Workspace extends BaseController
 {
     private array $modules = [
-        'branches' => ['title' => 'Cabang / area', 'table' => 'branches', 'roles' => ['superadmin', 'administrator'], 'create' => ['superadmin', 'administrator'], 'columns' => ['name' => 'Nama cabang', 'code' => 'Kode', 'phone' => 'Telepon', 'status' => 'Status'], 'fields' => ['name' => ['Nama cabang', 'text', true], 'code' => ['Kode cabang', 'text', true], 'phone' => ['Telepon', 'text', false], 'address' => ['Alamat', 'textarea', false]]],
-        'plans' => ['title' => 'Paket layanan', 'table' => 'plans', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama paket', 'service_type' => 'Jenis', 'speed_download' => 'Unduh', 'speed_upload' => 'Unggah', 'monthly_price' => 'Tarif / bulan', 'active' => 'Aktif'], 'fields' => ['name' => ['Nama paket', 'text', true], 'service_type' => ['Jenis layanan', 'select:pppoe,hotspot', true], 'speed_download' => ['Kecepatan unduh', 'text', false], 'speed_upload' => ['Kecepatan unggah', 'text', false], 'monthly_price' => ['Tarif bulanan (Rp)', 'number', true], 'hotspot_profile' => ['Profil hotspot MikroTik', 'text', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
-        'customers' => ['title' => 'Pelanggan', 'table' => 'customers', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'noc', 'keuangan', 'sales', 'pelanggan'], 'create' => ['superadmin', 'administrator', 'admin', 'sales'], 'columns' => ['customer_code' => 'ID pelanggan', 'full_name' => 'Nama', 'phone' => 'WhatsApp', 'plan_name' => 'Paket', 'service_type' => 'Jenis', 'status' => 'Status'], 'fields' => ['full_name' => ['Nama lengkap', 'text', true], 'phone' => ['Nomor WhatsApp', 'text', false], 'email' => ['Email', 'email', false], 'address' => ['Alamat pemasangan', 'textarea', false], 'plan_id' => ['Paket layanan', 'options:plans', true], 'service_type' => ['Jenis layanan', 'select:pppoe,hotspot', true], 'mikrotik_username' => ['Username PPPoE / hotspot', 'text', false], 'installed_at' => ['Tanggal aktif', 'date', false], 'notes' => ['Catatan', 'textarea', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
+        'branches' => ['title' => 'Cabang / area', 'table' => 'branches', 'roles' => ['superadmin', 'administrator'], 'create' => ['superadmin', 'administrator'], 'columns' => ['name' => 'Nama cabang', 'code' => 'Kode', 'phone' => 'Telepon', 'status' => 'Status'], 'fields' => ['name' => ['Nama cabang', 'text', true], 'code' => ['Kode cabang', 'text', true], 'phone' => ['Telepon', 'text', false], 'address' => ['Alamat', 'textarea', false], 'wa_provider' => ['WhatsApp gateway cabang', 'select:ngirimwa,fonnte', true], 'wa_api_key' => ['API key NgirimWA', 'password', false], 'wa_token' => ['Token Fonnte', 'password', false], 'technician_group_id' => ['ID grup teknisi (opsional)', 'text', false], 'finance_group_id' => ['ID grup finance (opsional)', 'text', false], 'admin_group_id' => ['ID grup admin (opsional)', 'text', false]]],
+        'odcs' => ['title' => 'ODC', 'table' => 'fiber_odcs', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin', 'noc'], 'columns' => ['code' => 'Kode ODC', 'name' => 'Nama ODC', 'branch_name' => 'Cabang', 'active' => 'Aktif'], 'fields' => ['branch_id' => ['Cabang', 'options:branches', true], 'code' => ['Kode ODC', 'text', true], 'name' => ['Nama ODC', 'text', true], 'location' => ['Lokasi', 'textarea', false]]],
+        'fiber-cores' => ['title' => 'Jalur / core ODC', 'table' => 'fiber_cores', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin', 'noc'], 'columns' => ['odc_name' => 'ODC', 'core_number' => 'Nomor core', 'color' => 'Warna core', 'route_label' => 'Jalur', 'status' => 'Status'], 'fields' => ['odc_id' => ['ODC induk', 'options:odcs', true], 'core_number' => ['Nomor core', 'number', true], 'color' => ['Warna core', 'text', true], 'route_label' => ['Nama jalur', 'text', true]]],
+        'odps' => ['title' => 'ODP dan port pelanggan', 'table' => 'fiber_odps', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin', 'noc'], 'columns' => ['code' => 'Kode ODP', 'name' => 'Nama ODP', 'odc_name' => 'ODC induk', 'route_label' => 'Jalur / core', 'active' => 'Aktif'], 'fields' => ['branch_id' => ['Cabang', 'options:branches', true], 'odc_id' => ['ODC induk', 'options:odcs', true], 'core_id' => ['Core / jalur', 'options:cores', true], 'code' => ['Kode ODP', 'text', true], 'name' => ['Nama ODP', 'text', true], 'location' => ['Lokasi', 'textarea', false], 'port_count' => ['Jumlah port pelanggan (minimal 8)', 'number', true]]],
+        'serials' => ['title' => 'Serial ONT/ONU', 'table' => 'product_serials', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'noc'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['serial_number' => 'Serial number', 'product_name' => 'Barang', 'branch_name' => 'Cabang', 'status' => 'Status'], 'fields' => ['branch_id' => ['Cabang', 'options:branches', true], 'product_id' => ['Barang ONT/ONU', 'options:ont_products', true], 'serial_number' => ['Serial number perangkat', 'text', true]]],
+        'plans' => ['title' => 'Paket layanan', 'table' => 'plans', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama paket', 'service_type' => 'Jenis', 'speed_download' => 'Unduh', 'speed_upload' => 'Unggah', 'monthly_price' => 'Tarif / bulan', 'active' => 'Aktif'], 'fields' => ['name' => ['Nama paket', 'text', true], 'service_type' => ['Jenis layanan', 'select:pppoe,static_ip', true], 'speed_download' => ['Kecepatan unduh', 'text', false], 'speed_upload' => ['Kecepatan unggah', 'text', false], 'monthly_price' => ['Tarif bulanan (Rp)', 'number', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
+        'customers' => ['title' => 'Pelanggan tetap', 'table' => 'customers', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'noc', 'keuangan', 'sales', 'pelanggan'], 'create' => ['superadmin', 'administrator', 'admin', 'sales'], 'columns' => ['customer_code' => 'ID pelanggan', 'full_name' => 'Nama', 'phone' => 'WhatsApp', 'plan_name' => 'Paket', 'service_type' => 'Jenis koneksi', 'status' => 'Status'], 'fields' => ['customer_code' => ['ID pelanggan (10 digit)', 'customer_id', true], 'sales_user_id' => ['Nama sales (opsional)', 'options:sales', false], 'branch_id' => ['Cabang', 'options:branches', true], 'created_by_display' => ['Dibuat oleh', 'readonly', false], 'full_name' => ['Nama lengkap (nama depan dan belakang)', 'text', true], 'phone' => ['WhatsApp aktif (format 62xxxxxxxxxx)', 'phone', true], 'email' => ['Email', 'email', false], 'service_type' => ['Jenis koneksi', 'select:pppoe,static_ip', true], 'connection_mode' => ['Aksi MikroTik', 'select:create,sync', true], 'mikrotik_router_id' => ['Router MikroTik', 'options:routers', true], 'mikrotik_username' => ['Username koneksi PPPoE', 'text', false], 'mikrotik_password' => ['Kata sandi PPPoE (hanya dikirim ke MikroTik)', 'password', false], 'static_ip' => ['Alamat IP statis', 'text', false], 'plan_id' => ['Paket layanan', 'options:plans', true], 'due_day' => ['Jatuh tempo (tanggal 1–20)', 'number', true], 'auto_billing' => ['Generate tagihan otomatis', 'select:1,0', true], 'device_serial' => ['Serial number ONT/ONU', 'options:available_serials', true], 'odp_port_id' => ['ODP · port', 'options:available_odp_ports', true], 'installed_at' => ['Tanggal aktif', 'date', false], 'address' => ['Alamat pemasangan', 'textarea', false], 'notes' => ['Catatan', 'textarea', false]]],
         'routers' => ['title' => 'Router MikroTik', 'table' => 'routers', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['name' => 'Nama', 'base_url' => 'Alamat REST API', 'username' => 'Pengguna API', 'verify_ssl' => 'Verifikasi TLS', 'active' => 'Aktif'], 'fields' => ['name' => ['Nama router', 'text', true], 'base_url' => ['URL router (HTTPS)', 'url', true], 'username' => ['Pengguna API', 'text', true], 'password' => ['Kata sandi API', 'password', true], 'verify_ssl' => ['Verifikasi sertifikat TLS', 'select:1,0', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
-        'products' => ['title' => 'Stok barang', 'table' => 'products', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'keuangan'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['sku' => 'SKU', 'name' => 'Barang', 'stock_qty' => 'Stok', 'minimum_stock' => 'Batas minimum', 'cost_price' => 'Harga modal', 'sale_price' => 'Harga jual'], 'fields' => ['sku' => ['SKU', 'text', true], 'name' => ['Nama barang', 'text', true], 'unit' => ['Satuan', 'text', true], 'minimum_stock' => ['Batas stok minimum', 'number', false], 'cost_price' => ['Harga modal per satuan', 'number', false], 'sale_price' => ['Harga jual', 'number', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
+        'products' => ['title' => 'Stok barang', 'table' => 'products', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'keuangan'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['sku' => 'SKU', 'name' => 'Barang', 'stock_qty' => 'Stok', 'minimum_stock' => 'Batas minimum', 'cost_price' => 'Harga modal', 'sale_price' => 'Harga jual'], 'fields' => ['sku' => ['SKU', 'text', true], 'name' => ['Nama barang', 'text', true], 'category' => ['Jenis barang', 'select:ont_onu,router,accessory,other', true], 'unit' => ['Satuan', 'text', true], 'minimum_stock' => ['Batas stok minimum', 'number', false], 'cost_price' => ['Harga modal per satuan', 'number', false], 'sale_price' => ['Harga jual', 'number', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
         'invoices' => ['title' => 'Tagihan pelanggan', 'table' => 'invoices', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'pelanggan'], 'create' => [], 'columns' => ['invoice_no' => 'No. tagihan', 'customer_name' => 'Pelanggan', 'period' => 'Periode', 'total' => 'Total', 'due_date' => 'Jatuh tempo', 'status' => 'Status']],
         'payments' => ['title' => 'Pembayaran', 'table' => 'payments', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'pelanggan'], 'create' => [], 'columns' => ['external_reference' => 'Referensi', 'customer_name' => 'Pelanggan', 'provider' => 'Gateway', 'amount' => 'Jumlah', 'status' => 'Status', 'paid_at' => 'Waktu bayar']],
         'finance' => ['title' => 'Buku kas', 'table' => 'finance_entries', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'create' => ['superadmin', 'administrator', 'admin', 'keuangan'], 'columns' => ['transaction_date' => 'Tanggal', 'entry_type' => 'Jenis', 'category' => 'Kategori', 'amount' => 'Jumlah', 'description' => 'Keterangan'], 'fields' => ['transaction_date' => ['Tanggal transaksi', 'date', true], 'category' => ['Kategori biaya', 'text', true], 'amount' => ['Jumlah (Rp)', 'number', true], 'description' => ['Keterangan', 'textarea', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
@@ -19,7 +23,7 @@ class Workspace extends BaseController
         'work-orders' => ['title' => 'Tugas teknisi & sales', 'table' => 'work_orders', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'noc', 'sales'], 'create' => ['superadmin', 'administrator', 'admin', 'noc', 'sales'], 'columns' => ['work_order_no' => 'No. tugas', 'title' => 'Pekerjaan', 'customer_name' => 'Pelanggan', 'technician_name' => 'Teknisi', 'sales_name' => 'Sales', 'billable_amount' => 'Nilai', 'status' => 'Status'], 'fields' => ['title' => ['Judul pekerjaan', 'text', true], 'customer_id' => ['Pelanggan (opsional)', 'options:customers', false], 'technician_id' => ['Teknisi (opsional)', 'options:technicians', false], 'sales_user_id' => ['Sales (opsional)', 'options:sales', false], 'billable_amount' => ['Nilai pekerjaan (Rp)', 'number', false], 'scheduled_at' => ['Jadwal', 'datetime-local', false], 'description' => ['Rincian pekerjaan', 'textarea', false], 'branch_id' => ['Cabang', 'options:branches', false]]],
         'earnings' => ['title' => 'Bonus teknisi & sales fee', 'table' => 'staff_earnings', 'roles' => ['superadmin', 'administrator', 'admin', 'keuangan', 'teknisi', 'sales'], 'create' => [], 'columns' => ['user_name' => 'Penerima', 'earning_type' => 'Jenis fee', 'period' => 'Periode', 'amount' => 'Nilai', 'status' => 'Status', 'work_order_no' => 'Pekerjaan']],
         'earning-rules' => ['title' => 'Aturan bonus & sales fee', 'table' => 'earning_rules', 'roles' => ['superadmin', 'administrator', 'admin'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['role' => 'Peran penerima', 'calculation_type' => 'Perhitungan', 'value' => 'Nilai', 'active' => 'Aktif'], 'fields' => ['role' => ['Peran penerima', 'select:teknisi,sales', true], 'calculation_type' => ['Metode hitung', 'select:fixed,percent', true], 'value' => ['Nominal rupiah atau persentase', 'number', true], 'branch_id' => ['Cabang (kosong = semua cabang)', 'options:branches', false]]],
-        'vouchers' => ['title' => 'Voucher hotspot', 'table' => 'hotspot_vouchers', 'roles' => ['superadmin', 'administrator', 'admin', 'teknisi', 'noc'], 'create' => [], 'columns' => ['username' => 'Username', 'password' => 'Kata sandi', 'profile' => 'Profil', 'status' => 'Status', 'created_at' => 'Dibuat']],
+        'vouchers' => ['title' => 'Voucher hotspot', 'table' => 'hotspot_vouchers', 'roles' => ['superadmin', 'administrator', 'admin', 'noc'], 'create' => [], 'columns' => ['username' => 'Username', 'password' => 'Kata sandi', 'profile' => 'Profil', 'unit_price' => 'Harga', 'status' => 'Status', 'created_at' => 'Dibuat']],
             'users' => ['title' => 'Pengguna & peran', 'table' => 'users', 'roles' => ['superadmin', 'administrator', 'admin'], 'create' => ['superadmin', 'administrator', 'admin'], 'columns' => ['full_name' => 'Nama', 'username' => 'Username', 'role' => 'Peran', 'branch_name' => 'Cabang', 'active' => 'Aktif'], 'fields' => ['full_name' => ['Nama lengkap', 'text', true], 'username' => ['Username / email login', 'text', true], 'email' => ['Email pemulihan', 'email', false], 'phone' => ['Telepon', 'text', false], 'role' => ['Peran', 'select:admin,teknisi,keuangan,noc,sales,pelanggan,administrator', true], 'customer_id' => ['Profil pelanggan (untuk akun pelanggan)', 'options:customers', false], 'password' => ['Kata sandi awal (min. 12 karakter)', 'password', true], 'branch_id' => ['Cabang', 'options:branches', false]]],
     ];
 
@@ -63,16 +67,20 @@ class Workspace extends BaseController
         }
         $routers = [];
         if ($slug === 'vouchers') {
-            $routerQuery = db_connect()->table('routers')->select('id, name')->where('active', 1);
+            $routerQuery = db_connect()->table('routers')->select('id, name, branch_id')->where('active', 1);
             if (mynet_user('branch_id')) $routerQuery->where('branch_id', mynet_user('branch_id'));
             $routers = $routerQuery->orderBy('name')->get()->getResultArray();
+        }
+        $voucherBranches = [];
+        if ($slug === 'vouchers' && empty(mynet_user('branch_id'))) {
+            $voucherBranches = db_connect()->table('branches')->select('id, name')->where('status', 'active')->orderBy('name')->get()->getResultArray();
         }
 
         return view('workspace/index', [
             'title' => $module['title'], 'module' => $slug, 'definition' => $module,
             'rows' => $rows, 'menus' => mynet_menus(mynet_user('role')),
             'canCreate' => in_array(mynet_user('role'), $module['create'], true),
-            'actions' => $links, 'openInvoices' => $openInvoices, 'routers' => $routers,
+            'actions' => $links, 'openInvoices' => $openInvoices, 'routers' => $routers, 'voucherBranches' => $voucherBranches,
         ]);
     }
 
@@ -83,8 +91,15 @@ class Workspace extends BaseController
         return view('workspace/form', [
             'title' => 'Tambah ' . strtolower($module['title']), 'module' => $slug,
             'definition' => $module, 'fields' => $this->fields($module),
+            'generatedCustomerCode' => $slug === 'customers' ? $this->generateCustomerCode() : null,
             'menus' => mynet_menus(mynet_user('role')),
         ]);
+    }
+
+    public function generateCustomerId()
+    {
+        if (! in_array(mynet_user('role'), ['superadmin', 'administrator', 'admin', 'sales'], true)) return $this->response->setStatusCode(403)->setJSON(['error' => 'Tidak memiliki akses.']);
+        return $this->response->setJSON(['customer_id' => $this->generateCustomerCode()]);
     }
 
     public function store(string $slug)
@@ -103,11 +118,78 @@ class Workspace extends BaseController
 
         $user = session('user');
         $branchId = $this->selectedBranch($posted);
-        if (in_array($slug, ['plans', 'customers', 'routers', 'products', 'finance', 'work-orders'], true)) $data['branch_id'] = $branchId;
+        $branchWa = null;
+        if ($slug === 'branches') {
+            $provider = (string) ($posted['wa_provider'] ?? '');
+            $key = $provider === 'fonnte' ? trim((string) ($posted['wa_token'] ?? '')) : trim((string) ($posted['wa_api_key'] ?? ''));
+            if (! in_array($provider, ['ngirimwa', 'fonnte'], true) || $key === '') return redirect()->back()->withInput()->with('error', 'Pilih gateway WhatsApp cabang dan isi kredensial gateway tersebut.');
+            $branchWa = [
+                'provider' => $provider, 'ngirimwa_api_key' => $provider === 'ngirimwa' ? $key : '', 'fonnte_token' => $provider === 'fonnte' ? $key : '',
+                'technician_group_id' => trim((string) ($posted['technician_group_id'] ?? '')),
+                'finance_group_id' => trim((string) ($posted['finance_group_id'] ?? '')),
+                'admin_group_id' => trim((string) ($posted['admin_group_id'] ?? '')),
+            ];
+            foreach (['technician_group_id', 'finance_group_id', 'admin_group_id'] as $groupField) {
+                if ($branchWa[$groupField] !== '' && ! preg_match('/^[0-9-]{8,40}@g\.us$/', $branchWa[$groupField])) return redirect()->back()->withInput()->with('error', 'ID grup WhatsApp harus berakhiran @g.us.');
+            }
+            unset($data['wa_provider'], $data['wa_api_key'], $data['wa_token'], $data['technician_group_id'], $data['finance_group_id'], $data['admin_group_id']);
+        }
+        if (in_array($slug, ['plans', 'customers', 'routers', 'products', 'finance', 'work-orders', 'odcs', 'odps', 'serials'], true)) $data['branch_id'] = $branchId;
+        if ($slug === 'fiber-cores') {
+            $odc = db_connect()->table('fiber_odcs')->where('id', (int) ($data['odc_id'] ?? 0))->where('active', 1)->get()->getRowArray();
+            if (! $odc || ! $this->inBranch($odc['branch_id'])) return redirect()->back()->withInput()->with('error', 'Pilih ODC aktif di cabang Anda.');
+            if ((int) ($data['core_number'] ?? 0) < 1) return redirect()->back()->withInput()->with('error', 'Nomor core harus lebih besar dari nol.');
+        }
+        $odpPortCount = 0;
+        if ($slug === 'odps') {
+            $odpPortCount = (int) ($data['port_count'] ?? 0);
+            unset($data['port_count']);
+            if ($odpPortCount < 8 || $odpPortCount > 64) return redirect()->back()->withInput()->with('error', 'ODP harus memiliki minimal 8 dan maksimal 64 port pelanggan.');
+            $odcId = (int) ($data['odc_id'] ?? 0);
+            $core = db_connect()->table('fiber_cores')->where('id', (int) ($data['core_id'] ?? 0))->where('odc_id', $odcId)->get()->getRowArray();
+            $odc = db_connect()->table('fiber_odcs')->where('id', $odcId)->where('branch_id', $branchId)->where('active', 1)->get()->getRowArray();
+            if (! $core || ! $odc || (int) db_connect()->table('fiber_odps')->where('odc_id', $odcId)->countAllResults() >= 8) return redirect()->back()->withInput()->with('error', 'ODP wajib terhubung ke core ODC yang sama; satu ODC maksimal memiliki 8 ODP.');
+        }
         if ($slug === 'earning-rules') $data['branch_id'] = mynet_user('branch_id') ?: (! empty($posted['branch_id']) ? (int) $posted['branch_id'] : null);
-        if ($slug === 'customers') {
-            $data['customer_code'] = 'C' . date('ymd') . strtoupper(bin2hex(random_bytes(4)));
+        if ($slug === 'odcs') {
+            $select .= ', branches.name AS branch_name';
+            $builder->join('branches', 'branches.id = fiber_odcs.branch_id', 'left');
+        } elseif ($slug === 'fiber-cores') {
+            $select .= ', fiber_odcs.name AS odc_name';
+            $builder->join('fiber_odcs', 'fiber_odcs.id = fiber_cores.odc_id', 'left');
+        } elseif ($slug === 'odps') {
+            $select .= ', fiber_odcs.name AS odc_name, fiber_cores.route_label';
+            $builder->join('fiber_odcs', 'fiber_odcs.id = fiber_odps.odc_id', 'left')->join('fiber_cores', 'fiber_cores.id = fiber_odps.core_id', 'left');
+        } elseif ($slug === 'customers') {
+            unset($data['created_by_display']);
+            $customerCode = trim((string) ($posted['customer_code'] ?? ''));
+            if (! preg_match('/^[0-9]{10}$/', $customerCode)) return redirect()->back()->withInput()->with('error', 'ID pelanggan harus terdiri dari 10 angka.');
+            if (db_connect()->table('customers')->where('customer_code', $customerCode)->countAllResults()) return redirect()->back()->withInput()->with('error', 'ID pelanggan sudah digunakan. Tekan Generate untuk membuat ID baru.');
+            $data['customer_code'] = $customerCode;
             $data['status'] = 'active';
+            $data['created_by'] = (int) mynet_user('id');
+            $data['auto_billing'] = (int) ($data['auto_billing'] ?? 1);
+            $data['due_day'] = (int) ($data['due_day'] ?? 0);
+            if ($data['due_day'] < 1 || $data['due_day'] > 20) return redirect()->back()->withInput()->with('error', 'Tanggal jatuh tempo harus antara 1 sampai 20.');
+            $nameParts = preg_split('/\s+/', trim((string) $data['full_name']));
+            if (count($nameParts) < 2) return redirect()->back()->withInput()->with('error', 'Isi nama depan dan nama belakang pelanggan.');
+            $phone = preg_replace('/[\s().-]+/', '', (string) $data['phone']);
+            if (str_starts_with($phone, '+62')) $phone = substr($phone, 1);
+            elseif (str_starts_with($phone, '08')) $phone = '62' . substr($phone, 1);
+            elseif (str_starts_with($phone, '8')) $phone = '62' . $phone;
+            if (! preg_match('/^62[0-9]{8,13}$/', $phone)) return redirect()->back()->withInput()->with('error', 'Nomor WhatsApp harus valid dan menggunakan kode negara 62.');
+            $data['phone'] = $phone;
+            $data['connection_mode'] = (string) ($data['connection_mode'] ?? 'create');
+            if (! in_array($data['connection_mode'], ['create', 'sync'], true)) return redirect()->back()->withInput()->with('error', 'Pilih aksi MikroTik yang valid.');
+            if ($data['service_type'] === 'pppoe' && (trim((string) ($data['mikrotik_username'] ?? '')) === '' || trim((string) ($posted['mikrotik_password'] ?? '')) === '')) return redirect()->back()->withInput()->with('error', 'Username dan kata sandi koneksi PPPoE wajib diisi.');
+            $mikrotikPassword = (string) ($posted['mikrotik_password'] ?? '');
+            unset($data['mikrotik_password']);
+            if ($data['service_type'] === 'static_ip' && ! filter_var($data['static_ip'] ?? '', FILTER_VALIDATE_IP)) return redirect()->back()->withInput()->with('error', 'Alamat IP static harus valid.');
+            $salesId = (int) ($data['sales_user_id'] ?? 0);
+            if ($salesId) {
+                $sales = db_connect()->table('users')->where('id', $salesId)->where('role', 'sales')->where('active', 1)->where('branch_id', $branchId)->countAllResults();
+                if (! $sales) return redirect()->back()->withInput()->with('error', 'Sales harus aktif dan berasal dari cabang pelanggan.');
+            }
         } elseif ($slug === 'products') {
             $data['stock_qty'] = 0;
             $data['active'] = 1;
@@ -145,7 +227,52 @@ class Workspace extends BaseController
         }
         if ($slug === 'customers') {
             $plan = db_connect()->table('plans')->where('id', (int) $data['plan_id'])->where('active', 1)->get()->getRowArray();
-            if (! $plan || (! empty($plan['branch_id']) && (int) $plan['branch_id'] !== (int) $data['branch_id'])) return redirect()->back()->withInput()->with('error', 'Paket tidak aktif atau berada di cabang lain.');
+            if (! $plan || $plan['service_type'] !== $data['service_type'] || (! empty($plan['branch_id']) && (int) $plan['branch_id'] !== (int) $data['branch_id'])) return redirect()->back()->withInput()->with('error', 'Paket aktif harus sesuai jenis koneksi dan cabang pelanggan.');
+            $router = db_connect()->table('routers')->where('id', (int) $data['mikrotik_router_id'])->where('active', 1)->where('branch_id', $data['branch_id'])->countAllResults();
+            if (! $router) return redirect()->back()->withInput()->with('error', 'Pilih router aktif dari cabang pelanggan.');
+            $serial = db_connect()->table('product_serials ps')->select('ps.id, ps.product_id, ps.serial_number')
+                ->join('products p', 'p.id = ps.product_id')->where('ps.id', (int) $data['device_serial'])
+                ->where('ps.branch_id', $data['branch_id'])->where('ps.status', 'available')->where('p.category', 'ont_onu')->get()->getRowArray();
+            if (! $serial) return redirect()->back()->withInput()->with('error', 'Serial ONT/ONU harus terdaftar dan tersedia pada stok cabang.');
+            $port = db_connect()->table('fiber_odp_ports op')->select('op.id, o.odc_id')
+                ->join('fiber_odps o', 'o.id = op.odp_id')->where('op.id', (int) $data['odp_port_id'])
+                ->where('op.status', 'available')->where('o.branch_id', $data['branch_id'])->get()->getRowArray();
+            if (! $port) return redirect()->back()->withInput()->with('error', 'Pilih port ODP yang masih tersedia di cabang pelanggan.');
+            if ((int) db_connect()->table('fiber_odps')->where('odc_id', $port['odc_id'])->countAllResults() < 4) return redirect()->back()->withInput()->with('error', 'ODC harus memiliki minimal 4 ODP sebelum pelanggan dapat dipasang.');
+            if ($data['service_type'] === 'pppoe') {
+                $routerRow = db_connect()->table('routers')->where('id', (int) $data['mikrotik_router_id'])->get()->getRowArray();
+                try {
+                    (new \App\Libraries\RouterOs())->provisionPppoe($routerRow, (string) $data['mikrotik_username'], $mikrotikPassword, (string) $plan['name'], (string) $data['connection_mode']);
+                } catch (\Throwable $e) {
+                    return redirect()->back()->withInput()->with('error', 'Sinkronisasi PPPoE ke MikroTik gagal: ' . $e->getMessage());
+                }
+            }
+            if ((int) db_connect()->table('fiber_odps')->where('odc_id', $port['odc_id'])->countAllResults() < 4) return redirect()->back()->withInput()->with('error', 'ODC harus memiliki minimal 4 ODP sebelum pelanggan dapat dipasang.');
+            $data['device_serial'] = $serial['serial_number'];
+            $data['mikrotik_router_id'] = (int) $data['mikrotik_router_id'];
+            $data['sales_user_id'] = $salesId ?: null;
+            $data['odp_port_id'] = (int) $data['odp_port_id'];
+            db_connect()->transStart();
+            db_connect()->table($module['table'])->insert($data);
+            $customerId = (int) db_connect()->insertID();
+            db_connect()->table('product_serials')->where('id', $serial['id'])->where('status', 'available')->update(['status' => 'assigned', 'customer_id' => $customerId, 'updated_at' => date('Y-m-d H:i:s')]);
+            if (db_connect()->affectedRows() !== 1) {
+                db_connect()->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Serial ONT/ONU sudah dipakai pelanggan lain.');
+            }
+            db_connect()->table('products')->where('id', $serial['product_id'])->where('stock_qty >', 0)->set('stock_qty', 'stock_qty - 1', false)->update();
+            if (db_connect()->affectedRows() !== 1) {
+                db_connect()->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Stok barang ONT/ONU kosong; catat stok masuk sebelum memasang perangkat.');
+            }
+            db_connect()->table('fiber_odp_ports')->where('id', $port['id'])->where('status', 'available')->update(['status' => 'occupied', 'customer_id' => $customerId]);
+            if (db_connect()->affectedRows() !== 1) {
+                db_connect()->transRollback();
+                return redirect()->back()->withInput()->with('error', 'Port ODP sudah dipakai pelanggan lain.');
+            }
+            db_connect()->transComplete();
+            if (! db_connect()->transStatus()) return redirect()->back()->withInput()->with('error', 'Pelanggan gagal disimpan; pastikan serial perangkat dan port ODP belum dipakai.');
+            return redirect()->to('/area/customers')->with('success', 'Pelanggan tetap berhasil dibuat dengan ID ' . $customerCode . '.');
         }
         if ($slug === 'work-orders') {
             if (! empty($data['customer_id'])) {
@@ -168,7 +295,33 @@ class Workspace extends BaseController
         $data['created_at'] = date('Y-m-d H:i:s');
         if (in_array($slug, ['branches', 'plans', 'customers', 'routers', 'products', 'users', 'work-orders', 'earning-rules'], true)) $data['updated_at'] = date('Y-m-d H:i:s');
 
+        if ($slug === 'odps') {
+            $db = db_connect();
+            $db->transStart();
+            $db->table('fiber_odps')->insert($data);
+            $odpId = (int) $db->insertID();
+            $ports = [];
+            for ($portNumber = 1; $portNumber <= $odpPortCount; $portNumber++) $ports[] = ['odp_id' => $odpId, 'port_number' => $portNumber, 'status' => 'available'];
+            $db->table('fiber_odp_ports')->insertBatch($ports);
+            $db->transComplete();
+            if (! $db->transStatus()) return redirect()->back()->withInput()->with('error', 'ODP dan port tidak berhasil disimpan.');
+            return redirect()->to('/area/odps')->with('success', 'ODP berhasil dibuat beserta ' . $odpPortCount . ' port pelanggan.');
+        }
+        if ($slug === 'serials') {
+            $productQuery = db_connect()->table('products')->where('id', (int) ($posted['product_id'] ?? 0))->where('category', 'ont_onu')->where('active', 1);
+            if ($branchId) $productQuery->groupStart()->where('branch_id', $branchId)->orWhere('branch_id', null)->groupEnd();
+            $product = $productQuery->get()->getRowArray();
+            if (! $product || ! $this->inBranch($posted['branch_id'] ?? null)) return redirect()->back()->withInput()->with('error', 'Pilih produk ONT/ONU aktif pada cabang Anda.');
+            $db = db_connect();
+            if ($db->table('product_serials')->where('serial_number', trim((string) $posted['serial_number']))->countAllResults()) return redirect()->back()->withInput()->with('error', 'Serial number sudah terdaftar.');
+            $db->table('product_serials')->insert([
+                'branch_id' => $branchId, 'product_id' => (int) $product['id'], 'serial_number' => trim((string) $posted['serial_number']),
+                'status' => 'available', 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            return redirect()->to('/area/serials')->with('success', 'Serial ONT/ONU berhasil ditambahkan ke stok tersedia.');
+        }
         db_connect()->table($module['table'])->insert($data);
+        if ($slug === 'branches' && $branchWa !== null) (new \App\Libraries\IntegrationConfig())->saveBranchWhatsapp((int) db_connect()->insertID(), $branchWa);
         return redirect()->to('/area/' . $slug)->with('success', $module['title'] . ' berhasil disimpan.');
     }
 
@@ -325,6 +478,9 @@ class Workspace extends BaseController
             $builder->join('branches', 'branches.id = users.branch_id', 'left');
         } elseif ($slug === 'branches') {
             $select .= ", CASE WHEN branches.status = 'active' THEN 1 ELSE 0 END AS active";
+        } elseif ($slug === 'serials') {
+            $select = 'product_serials.id, product_serials.branch_id, product_serials.serial_number, product_serials.status, products.name AS product_name, branches.name AS branch_name';
+            $builder->join('products', 'products.id = product_serials.product_id')->join('branches', 'branches.id = product_serials.branch_id', 'left');
         } elseif ($slug === 'products') {
             $select .= ', CASE WHEN ' . $table . '.stock_qty <= ' . $table . '.minimum_stock THEN 1 ELSE 0 END AS low_stock';
         }
@@ -335,7 +491,7 @@ class Workspace extends BaseController
             if ($slug === 'customers') $builder->where('customers.id', $user['customer_id'] ?? 0);
             elseif (in_array($slug, ['invoices', 'payments'], true)) $builder->where($table . '.customer_id', $user['customer_id'] ?? 0);
             elseif ($slug === 'work-orders') $builder->where('work_orders.id', 0);
-        } elseif (! empty($user['branch_id']) && in_array($slug, ['plans', 'customers', 'routers', 'products', 'invoices', 'payments', 'finance', 'attendance', 'work-orders', 'earnings', 'earning-rules', 'vouchers', 'users'], true)) {
+        } elseif (! empty($user['branch_id']) && in_array($slug, ['plans', 'customers', 'routers', 'products', 'serials', 'odcs', 'odps', 'invoices', 'payments', 'finance', 'attendance', 'work-orders', 'earnings', 'earning-rules', 'vouchers', 'users'], true)) {
             $builder->where($table . '.branch_id', $user['branch_id']);
         }
         if ($slug === 'work-orders' && $user['role'] === 'teknisi') $builder->where('work_orders.technician_id', $user['id']);
@@ -386,11 +542,17 @@ class Workspace extends BaseController
     {
         $db = db_connect();
         $query = match ($source) {
-            'plans' => $db->table('plans')->select('id, name')->where('active', 1),
+            'plans' => $db->table('plans')->select('id, name, branch_id, service_type')->where('active', 1)->whereIn('service_type', ['pppoe', 'static_ip']),
             'customers' => $db->table('customers')->select('id, full_name AS name')->where('status', 'active'),
             'technicians' => $db->table('users')->select('id, full_name AS name')->where('active', 1)->where('role', 'teknisi'),
             'sales' => $db->table('users')->select('id, full_name AS name')->where('active', 1)->where('role', 'sales'),
             'branches' => $db->table('branches')->select('id, name')->where('status', 'active'),
+            'odcs' => $db->table('fiber_odcs')->select('id, name')->where('active', 1),
+            'cores' => $db->table('fiber_cores c')->select("c.id, CONCAT(o.name, ' / Core ', c.core_number, ' - ', c.color) AS name", false)->join('fiber_odcs o', 'o.id = c.odc_id')->where('o.active', 1),
+            'routers' => $db->table('routers')->select('id, name, branch_id')->where('active', 1),
+            'available_serials' => $db->table('product_serials ps')->select('ps.id, ps.branch_id, CONCAT(ps.serial_number, " · ", b.name) AS name', false)->join('products p', 'p.id = ps.product_id')->join('branches b', 'b.id = ps.branch_id')->where('ps.status', 'available')->where('p.category', 'ont_onu'),
+            'ont_products' => $db->table('products')->select('id, name, branch_id')->where('active', 1)->where('category', 'ont_onu'),
+            'available_odp_ports' => $db->table('fiber_odp_ports op')->select("op.id, o.branch_id, CONCAT(o.name, ' / Port ', op.port_number) AS name", false)->join('fiber_odps o', 'o.id = op.odp_id')->where('op.status', 'available')->where('o.active', 1),
             default => null,
         };
         if (! $query) return [];
@@ -398,7 +560,24 @@ class Workspace extends BaseController
         if (! empty($user['branch_id'])) {
             if ($source === 'branches') $query->where('id', $user['branch_id']);
             elseif (in_array($source, ['plans', 'customers', 'technicians', 'sales'], true)) $query->where('branch_id', $user['branch_id']);
+            elseif ($source === 'routers') $query->where('branch_id', $user['branch_id']);
+            elseif ($source === 'odcs') $query->where('branch_id', $user['branch_id']);
+            elseif ($source === 'cores') $query->where('o.branch_id', $user['branch_id']);
+            elseif ($source === 'available_serials') $query->where('ps.branch_id', $user['branch_id']);
+            elseif ($source === 'ont_products') $query->where('branch_id', $user['branch_id']);
+            elseif ($source === 'available_odp_ports') $query->where('o.branch_id', $user['branch_id']);
         }
+        if (in_array($source, ['available_serials', 'available_odp_ports', 'ont_products'], true)) return $query->orderBy('name')->get()->getResultArray();
         return $query->orderBy('name')->get()->getResultArray();
+    }
+
+    private function generateCustomerCode(): string
+    {
+        $db = db_connect();
+        do {
+            $code = (string) random_int(1_000_000_000, 9_999_999_999);
+        } while ($db->table('customers')->where('customer_code', $code)->countAllResults() > 0);
+
+        return $code;
     }
 }

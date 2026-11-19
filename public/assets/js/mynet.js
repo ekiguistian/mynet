@@ -31,4 +31,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = templateSelect.selectedOptions[0]?.dataset.body;
     if (body && messageBody) messageBody.value = body;
   });
+
+  document.querySelectorAll('[data-generate-customer-id]').forEach(button => button.addEventListener('click', async () => {
+    const input = document.querySelector('#field-customer-code');
+    const previousLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Memuat…';
+    try {
+      const response = await fetch(button.dataset.url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+      const data = await response.json();
+      if (!response.ok || !/^\d{10}$/.test(data.customer_id || '')) throw new Error(data.error || 'ID pelanggan gagal dibuat.');
+      if (input) input.value = data.customer_id;
+    } catch (error) {
+      window.alert(error.message || 'ID pelanggan gagal dibuat. Muat ulang halaman.');
+    } finally {
+      button.disabled = false;
+      button.textContent = previousLabel;
+    }
+  }));
+
+  const voucherForm = document.querySelector('[data-voucher-form]');
+  if (voucherForm) {
+    const branchSelect = voucherForm.querySelector('[data-voucher-branch]');
+    const routerSelect = voucherForm.querySelector('[data-voucher-router]');
+    const profileSelect = voucherForm.querySelector('[data-voucher-profile]');
+    const priceInput = voucherForm.querySelector('[data-voucher-price]');
+    const syncRouters = () => {
+      const branchId = branchSelect?.value;
+      [...routerSelect.options].forEach((option, index) => {
+        if (index === 0) return;
+        option.hidden = Boolean(branchId && option.dataset.branch !== branchId);
+      });
+      routerSelect.value = '';
+      profileSelect.innerHTML = '<option value="">Pilih router terlebih dahulu</option>';
+      profileSelect.disabled = true;
+      priceInput.value = '';
+    };
+    branchSelect?.addEventListener('change', syncRouters);
+    routerSelect?.addEventListener('change', async () => {
+      const routerId = routerSelect.value;
+      profileSelect.innerHTML = '<option value="">Memuat profil router…</option>';
+      profileSelect.disabled = true;
+      priceInput.value = '';
+      if (!routerId) return;
+      try {
+        const response = await fetch(`${voucherForm.dataset.profileUrl}/${encodeURIComponent(routerId)}`, { headers: { Accept: 'application/json' } });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Profil router gagal dimuat.');
+        profileSelect.innerHTML = '<option value="">Pilih profil hotspot</option>';
+        data.profiles.forEach(profile => {
+          const option = document.createElement('option');
+          option.value = profile.name;
+          option.textContent = profile.price === null ? profile.name : `${profile.name} · Rp ${Number(profile.price).toLocaleString('id-ID')}`;
+          option.dataset.price = profile.price === null ? '' : String(profile.price);
+          profileSelect.append(option);
+        });
+        profileSelect.disabled = false;
+        if (!data.profiles.length) profileSelect.innerHTML = '<option value="">Tidak ada profil hotspot di router</option>';
+      } catch (error) {
+        profileSelect.innerHTML = `<option value="">${error.message}</option>`;
+      }
+    });
+    profileSelect?.addEventListener('change', () => {
+      const price = profileSelect.selectedOptions[0]?.dataset.price;
+      priceInput.value = price ? `Rp ${Number(price).toLocaleString('id-ID')}` : 'Comment bukan angka bulat';
+    });
+  }
+
+  const customerForm = document.querySelector('form[action$="/area/customers/simpan"]');
+  if (customerForm) {
+    const branch = customerForm.querySelector('#field-branch_id');
+    const service = customerForm.querySelector('#field-service_type');
+    const branchFields = [...customerForm.querySelectorAll('[data-branch-filter]')];
+    const connectionFields = [...customerForm.querySelectorAll('[data-connection-mode]')];
+    const applyFilters = () => {
+      branchFields.forEach(select => {
+        [...select.options].forEach((option, index) => {
+          if (!index) return;
+          const branchMismatch = option.dataset.branch && branch?.value && option.dataset.branch !== branch.value;
+          const serviceMismatch = select.hasAttribute('data-service-filter') && option.dataset.service && service?.value && option.dataset.service !== service.value;
+          option.hidden = Boolean(branchMismatch || serviceMismatch);
+          if (option.hidden && option.selected) select.value = '';
+        });
+      });
+      connectionFields.forEach(wrapper => {
+        const visible = wrapper.dataset.connectionMode === service?.value;
+        wrapper.hidden = !visible;
+        const input = wrapper.querySelector('input, select');
+        if (input) input.required = visible && (input.id === 'field-mikrotik_username' || input.id === 'field-mikrotik_password' || input.id === 'field-static_ip');
+      });
+    };
+    branch?.addEventListener('change', applyFilters);
+    service?.addEventListener('change', applyFilters);
+    applyFilters();
+  }
 });

@@ -37,6 +37,7 @@ if (! function_exists('mynet_menus')) {
             ['label' => 'Tagihan', 'icon' => '▧', 'url' => '/area/invoices'],
             ['label' => 'Pembayaran', 'icon' => '⇄', 'url' => '/area/payments'],
             ['label' => 'Stok barang', 'icon' => '◫', 'url' => '/area/products'],
+            ['label' => 'Serial ONT/ONU', 'icon' => '▣', 'url' => '/area/serials'],
             ['label' => 'Keuangan', 'icon' => '◒', 'url' => '/area/finance'],
             ['label' => 'Absensi', 'icon' => '◷', 'url' => '/area/attendance'],
             ['label' => 'Tugas teknisi', 'icon' => '⌁', 'url' => '/area/work-orders'],
@@ -44,6 +45,9 @@ if (! function_exists('mynet_menus')) {
             ['label' => 'Aturan bonus', 'icon' => '⚙', 'url' => '/area/earning-rules'],
             ['label' => 'Voucher hotspot', 'icon' => '▦', 'url' => '/area/vouchers'],
             ['label' => 'Router MikroTik', 'icon' => '⌘', 'url' => '/area/routers'],
+            ['label' => 'ODC', 'icon' => '⌕', 'url' => '/area/odcs'],
+            ['label' => 'Jalur / core ODC', 'icon' => '⌁', 'url' => '/area/fiber-cores'],
+            ['label' => 'ODP dan port', 'icon' => '⌖', 'url' => '/area/odps'],
             ['label' => 'Pengguna', 'icon' => '♙', 'url' => '/area/users'],
             ['label' => 'Cabang', 'icon' => '⌖', 'url' => '/area/branches'],
             ['label' => 'Tiket maintenance', 'icon' => '▣', 'url' => '/tickets'],
@@ -57,10 +61,10 @@ if (! function_exists('mynet_menus')) {
 
         $allow = [
             'superadmin' => ['*'], 'administrator' => ['*'],
-            'admin' => ['Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran', 'Stok barang', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Voucher hotspot', 'Router MikroTik', 'Pengguna', 'Tiket maintenance', 'Antrean WhatsApp'],
-            'teknisi' => ['Pelanggan', 'Absensi', 'Tugas teknisi', 'Voucher hotspot', 'Stok barang', 'Tiket maintenance'],
-            'keuangan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Keuangan', 'Bonus & fee', 'Antrean WhatsApp'],
-            'noc' => ['Pelanggan', 'Paket layanan', 'Voucher hotspot', 'Router MikroTik', 'Tugas teknisi', 'Tiket maintenance', 'Antrean WhatsApp'],
+            'admin' => ['Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran', 'Stok barang', 'Serial ONT/ONU', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Voucher hotspot', 'Router MikroTik', 'ODC', 'Jalur / core ODC', 'ODP dan port', 'Pengguna', 'Tiket maintenance', 'Antrean WhatsApp'],
+            'teknisi' => ['Pelanggan', 'Absensi', 'Tugas teknisi', 'Voucher hotspot', 'Stok barang', 'Serial ONT/ONU', 'Tiket maintenance'],
+            'keuangan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Keuangan', 'Bonus & fee', 'Serial ONT/ONU', 'Antrean WhatsApp'],
+            'noc' => ['Pelanggan', 'Paket layanan', 'Voucher hotspot', 'Router MikroTik', 'ODC', 'Jalur / core ODC', 'ODP dan port', 'Tugas teknisi', 'Tiket maintenance', 'Antrean WhatsApp'],
             'sales' => ['Pelanggan', 'Tugas teknisi', 'Bonus & fee', 'Tiket maintenance'],
             'pelanggan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Tiket maintenance'],
         ];

@@ -17,9 +17,9 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 
 ### Pelanggan dan tagihan
 
-- Profil pelanggan memuat cabang, paket, layanan PPPoE atau hotspot, harga paket, nomor WhatsApp, alamat, username MikroTik, dan status.
-- Paket layanan menyimpan tarif bulanan, jenis koneksi, kecepatan, dan profil hotspot.
-- Generate tagihan bulanan membuat satu tagihan per pelanggan aktif untuk periode terpilih. Tagihan ganda untuk pelanggan dan periode yang sama dilewati.
+- Profil pelanggan tetap memuat cabang, paket PPPoE atau IP static, nomor WhatsApp, jatuh tempo, pilihan router, username, SN perangkat, dan port ODP. Voucher hotspot dikelola pada menu terpisah tanpa profil pelanggan tetap.
+- ID pelanggan dibuat otomatis sebagai 10 angka dan divalidasi unik. Nama depan dan belakang, nomor WhatsApp berawalan 62, SN ONT/ONU, dan port ODP wajib diisi.
+- Generate tagihan manual membuat satu tagihan per pelanggan aktif untuk periode terpilih dan menghormati tanggal jatuh tempo pelanggan. Perintah harian `php spark billing:generate-recurring` membuat tagihan otomatis untuk pelanggan yang tanggalnya jatuh hari ini dan mengaktifkan auto billing. Tagihan periode ganda dilewati.
 - Pembayaran tagihan menerima input kasir/transfer manual atau tautan checkout payment gateway. Pembayaran sebagian didukung.
 - Webhook gateway memeriksa signature/token, mencocokkan jumlah pembayaran, menolak referensi yang tidak dikenal, memperbarui status tagihan, dan mengabaikan event berulang.
 - Pengingat tagihan WhatsApp dapat dikirim dari daftar tagihan. Status antrean dan kegagalan dicatat di log pesan.
@@ -33,7 +33,10 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - Generate 1–100 voucher dengan username dan kata sandi acak.
 - Voucher dapat disimpan untuk ekspor/pemakaian manual atau langsung dibuat sebagai user hotspot di RouterOS v7 melalui REST API.
 - Status `sync_failed` dicatat bila perangkat menolak atau tidak dapat dijangkau; kegagalan tidak menghapus voucher lokal.
-- Sinkronisasi langsung hanya mencakup user Hotspot (`/ip/hotspot/user`). Pengelolaan PPPoE atau isolasi otomatis saat tagihan terlambat belum termasuk.
+- Profil hotspot dan harganya dibaca langsung dari router. Harga diambil hanya jika komentar profil berupa angka bulat.
+- Akun PPPoE dapat dibuat atau disinkronkan pada menu pelanggan melalui RouterOS REST API. Kata sandi PPPoE hanya dikirim ke router dan tidak disimpan oleh aplikasi.
+- IP static disimpan pada profil pelanggan; provisioning IP static ke router masih bergantung pada skema alamat dan topologi tiap jaringan.
+- Pengelolaan SN ONT/ONU dan ODC, jalur/core warna, ODP, serta port pelanggan tersedia per cabang. Satu ODC menampung 4–8 ODP; setiap ODP dibuat dengan minimal 8 port dan port ditempati saat pelanggan didaftarkan.
 
 ### Persediaan dan keuangan
 
@@ -55,13 +58,14 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 
 ### Integrasi eksternal
 
-- **MikroTik RouterOS v7 REST API** untuk membuat akun hotspot. Router dan kredensialnya dikonfigurasi per cabang di aplikasi.
+- **MikroTik RouterOS v7 REST API** untuk profil voucher Hotspot serta pembuatan/sinkronisasi secret PPPoE. Router dan kredensialnya dikonfigurasi per cabang di aplikasi.
 - **NgirimWA** melalui endpoint kirim pesan dan header API key.
 - **Fonnte** (kadang ditulis Fonte) melalui endpoint kirim pesan dan token perangkat.
 - **Tripay** untuk membuat transaksi pembayaran tertutup dan menerima callback.
 - **Midtrans Snap** untuk membuat checkout dan menerima notifikasi transaksi.
 - **Xendit Invoice API** untuk membuat invoice dan menerima webhook.
 - Kredensial integrasi dapat diatur dari halaman Integrasi API dan disimpan terenkripsi menggunakan `encryption.key`. `.env` tetap dapat dipakai sebagai konfigurasi cadangan saat belum ada konfigurasi database.
+- Gateway WhatsApp dapat diatur saat cabang dibuat. Pesan ke pelanggan dan staf memakai kredensial serta ID grup milik cabang tersebut; antrean mendukung jadwal kirim.
 - Template pesan mendukung antrean terjadwal, penerima pelanggan, atau grup peran teknisi/keuangan/admin. Grup dapat dikirim sebagai ID grup Fonnte atau NgirimWA; tanpa ID grup, sistem mengirim satu pesan ke tiap nomor staf aktif pada cabang.
 - Tiket maintenance mencakup antrean, prioritas, penjadwalan, penugasan teknisi, riwayat pembaruan, notifikasi WhatsApp, dan pembaruan status.
 
@@ -297,7 +301,7 @@ Document root web server harus diarahkan ke folder `public/`, bukan akar repo. U
 
 ## Konfigurasi WhatsApp
 
-Atur satu penyedia berikut dalam `.env`:
+Nilai `.env` berikut menjadi konfigurasi global cadangan. Integrasi WhatsApp khusus cabang diatur ketika membuat cabang dan dapat diperbarui pada menu **Integrasi API → WhatsApp per cabang**:
 
 ```dotenv
 WA_PROVIDER = ngirimwa
@@ -311,7 +315,7 @@ WA_PROVIDER = fonnte
 FONNTE_TOKEN = isi_token_perangkat
 ```
 
-Konfigurasi juga dapat dimasukkan melalui **Pengaturan → Integrasi API**. Rahasia yang sudah disimpan tidak ditampilkan lagi dan nilai pada input rahasia yang dikosongkan akan dipertahankan. Nomor pelanggan disimpan sesuai input; integrasi Fonnte menambahkan kode negara Indonesia `62` untuk nomor biasa. Pengingat tagihan tersedia dari daftar tagihan.
+Konfigurasi global juga dapat dimasukkan melalui **Pengaturan → Integrasi API**. Rahasia yang sudah disimpan tidak ditampilkan lagi dan nilai pada input rahasia yang dikosongkan akan dipertahankan. Nomor pelanggan disimpan sesuai input; integrasi Fonnte menambahkan kode negara Indonesia `62` untuk nomor biasa. Pengingat tagihan tersedia dari daftar tagihan.
 
 ID grup WhatsApp untuk teknisi, keuangan, dan admin diatur pada bagian **Grup penerima WhatsApp**. ID dapat ditetapkan per cabang dengan ID default sebagai fallback. Kedua penyedia menerima ID grup berakhiran `@g.us`; NgirimWA menyediakan daftar grup lewat endpoint `GET /groups`, sementara Fonnte perlu memperbarui daftar grup setelah perangkat bergabung ke grup. Jangan berulang kali memanggil pembaruan daftar Fonnte. Jika ID tidak diatur, sistem mengirim ke nomor staf aktif pada cabang. Penerimaan pesan oleh API penyedia belum membuktikan bahwa pesan telah dibaca.
 
@@ -319,9 +323,10 @@ Pesan terjadwal diproses oleh command CLI. Pasang cron setiap menit di server Li
 
 ```cron
 * * * * * flock -n /tmp/mynet-wa-queue.lock sh -c 'cd /path/mynet && php spark whatsapp:process-queue >> writable/logs/whatsapp-queue.log 2>&1'
+* * * * * flock -n /tmp/mynet-billing.lock sh -c 'cd /path/mynet && php spark billing:generate-recurring >> writable/logs/billing-recurring.log 2>&1'
 ```
 
-Worker mengambil maksimal 50 pesan yang sudah waktunya per eksekusi, mencatat percobaan, dan memulihkan antrean yang berstatus `sending` lebih dari satu jam. `flock` mencegah jadwal cron meluncurkan worker yang tumpang tindih.
+Worker WhatsApp mengambil maksimal 50 pesan yang sudah waktunya per eksekusi, mencatat percobaan, dan memulihkan antrean yang berstatus `sending` lebih dari satu jam. Worker billing membuat tagihan pada tanggal jatuh tempo pelanggan; tagihan periode yang sudah ada dilewati. `flock` mencegah jadwal cron meluncurkan worker yang tumpang tindih.
 
 ## Konfigurasi payment gateway
 

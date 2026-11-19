@@ -13,7 +13,7 @@ class PaymentGateway
             'tripay' => $this->tripay($payment, $invoice, $customer),
             'midtrans' => $this->midtrans($payment, $invoice, $customer),
             'xendit' => $this->xendit($payment, $invoice, $customer),
-            default => throw new RuntimeException('Pilih PAYMENT_PROVIDER di file .env terlebih dahulu.'),
+            default => throw new RuntimeException('Pilih payment gateway yang aktif pada menu Integrasi API.'),
         };
     }
 

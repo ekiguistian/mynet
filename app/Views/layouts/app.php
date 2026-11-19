@@ -29,9 +29,11 @@
         <span class="brand-copy"><strong><?= esc($siteName) ?></strong><small><?= esc(mynet_setting('site_tagline', 'NETWORK MANAGER')) ?></small></span>
     </a>
     <div class="workspace-label"><span class="status-dot"></span> OPERASIONAL <span class="workspace-caret">⌄</span></div>
-    <div class="nav-caption">MENU UTAMA</div>
     <nav class="side-nav" aria-label="Menu utama">
+        <?php $lastNavGroup = null; ?>
         <?php foreach (($menus ?? []) as $menu): ?>
+            <?php $navGroup = match ($menu['label']) { 'Ringkasan' => 'Ringkasan', 'Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran' => 'Pelanggan & tagihan', 'Voucher hotspot' => 'Voucher hotspot', 'Router MikroTik', 'ODC', 'Jalur / core ODC', 'ODP dan port' => 'Jaringan', 'Stok barang', 'Serial ONT/ONU', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Tiket maintenance' => 'Operasional', default => 'Administrasi' }; ?>
+            <?php if ($navGroup !== $lastNavGroup): ?><div class="nav-caption"><?= esc(strtoupper($navGroup)) ?></div><?php $lastNavGroup = $navGroup; endif; ?>
             <?php $active = (uri_string() === ltrim($menu['url'], '/') || str_starts_with(uri_string(), ltrim($menu['url'], '/') . '/')); ?>
             <a class="nav-link <?= $active ? 'active' : '' ?>" href="<?= site_url($menu['url']) ?>">
                 <span class="nav-icon"><?= esc($menu['icon']) ?></span><span><?= esc($menu['label']) ?></span>

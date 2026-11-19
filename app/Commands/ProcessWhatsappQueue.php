@@ -36,6 +36,7 @@ class ProcessWhatsappQueue extends BaseCommand
             }
             $db->transCommit();
 
+            $waConfig = ! empty($row['branch_id']) ? (new IntegrationConfig())->getBranchWhatsapp((int) $row['branch_id']) : (new IntegrationConfig())->get('whatsapp');
             $targets = $this->targets($row, $waConfig);
             $allSent = count($targets) > 0;
             $errors = [];
@@ -47,6 +48,8 @@ class ProcessWhatsappQueue extends BaseCommand
                     continue;
                 }
                 $context = json_decode($row['context_json'] ?? '', true) ?: [];
+                $targetBranch = (int) ($target['branch_id'] ?? $row['branch_id'] ?? 0);
+                $targetConfig = $targetBranch ? (new IntegrationConfig())->getBranchWhatsapp($targetBranch) : $waConfig;
                 $message = strtr($row['message'], [
                     '{{nama}}' => (string) ($target['full_name'] ?? 'Pelanggan'),
                     '{{nomor_tiket}}' => (string) ($context['ticket_no'] ?? ''),
@@ -56,7 +59,7 @@ class ProcessWhatsappQueue extends BaseCommand
                     '{{total}}' => isset($context['total']) ? 'Rp ' . number_format((float) $context['total'], 0, ',', '.') : '',
                 ]);
                 try {
-                    $result = (new WhatsappGateway())->send($phone, $message, 'queue-' . $row['id']);
+                    $result = (new WhatsappGateway())->send($phone, $message, 'queue-' . $row['id'], $targetBranch ?: null);
                     $db->table('message_logs')->insert([
                         'customer_id' => $target['customer_id'] ?? null, 'provider' => $result['provider'], 'recipient' => $target['log_recipient'] ?? $phone,
                         'message' => $message, 'status' => 'sent', 'provider_reference' => $result['reference'], 'created_at' => date('Y-m-d H:i:s'),
@@ -65,7 +68,7 @@ class ProcessWhatsappQueue extends BaseCommand
                     $allSent = false;
                     $errors[] = $e->getMessage();
                     $db->table('message_logs')->insert([
-                        'customer_id' => $target['customer_id'] ?? null, 'provider' => (string) ($waConfig['provider'] ?? ''),
+                        'customer_id' => $target['customer_id'] ?? null, 'provider' => (string) ($targetConfig['provider'] ?? ''),
                         'recipient' => $target['log_recipient'] ?? $phone, 'message' => $message, 'status' => 'failed', 'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
@@ -83,7 +86,7 @@ class ProcessWhatsappQueue extends BaseCommand
     {
         $db = db_connect();
         if ($queue['target_group'] === 'pelanggan') {
-            $query = $db->table('customers')->select('id AS customer_id, full_name, phone')->where('status', 'active');
+            $query = $db->table('customers')->select('id AS customer_id, full_name, phone, branch_id')->where('status', 'active');
             if ($queue['target_customer_id']) $query->where('id', $queue['target_customer_id']);
             if ($queue['branch_id']) $query->where('branch_id', $queue['branch_id']);
             return $query->get()->getResultArray();
