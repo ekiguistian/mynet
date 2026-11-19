@@ -35,7 +35,7 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - Status `sync_failed` dicatat bila perangkat menolak atau tidak dapat dijangkau; kegagalan tidak menghapus voucher lokal.
 - Profil hotspot dan harganya dibaca langsung dari router. Harga diambil hanya jika komentar profil berupa angka bulat.
 - Akun PPPoE dapat dibuat atau disinkronkan pada menu pelanggan melalui RouterOS REST API. Kata sandi PPPoE hanya dikirim ke router dan tidak disimpan oleh aplikasi.
-- IP static disimpan pada profil pelanggan; provisioning IP static ke router masih bergantung pada skema alamat dan topologi tiap jaringan.
+- IP static disinkronkan sebagai Simple Queue RouterOS dengan target `/32` untuk IPv4 atau `/128` untuk IPv6. Nama queue memakai ID pelanggan (`MYNET-<ID>`), dan batas upload/download mengikuti kecepatan paket.
 - Pengelolaan SN ONT/ONU dan ODC, jalur/core warna, ODP, serta port pelanggan tersedia per cabang. Satu ODC menampung 4–8 ODP; setiap ODP dibuat dengan minimal 8 port dan port ditempati saat pelanggan didaftarkan.
 
 ### Persediaan dan keuangan

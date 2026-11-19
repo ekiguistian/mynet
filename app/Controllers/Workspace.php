@@ -181,6 +181,7 @@ class Workspace extends BaseController
             $data['phone'] = $phone;
             $data['connection_mode'] = (string) ($data['connection_mode'] ?? 'create');
             if (! in_array($data['connection_mode'], ['create', 'sync'], true)) return redirect()->back()->withInput()->with('error', 'Pilih aksi MikroTik yang valid.');
+            if ($data['service_type'] === 'static_ip') $data['connection_mode'] = 'sync';
             if ($data['service_type'] === 'pppoe' && (trim((string) ($data['mikrotik_username'] ?? '')) === '' || trim((string) ($posted['mikrotik_password'] ?? '')) === '')) return redirect()->back()->withInput()->with('error', 'Username dan kata sandi koneksi PPPoE wajib diisi.');
             $mikrotikPassword = (string) ($posted['mikrotik_password'] ?? '');
             unset($data['mikrotik_password']);
@@ -245,6 +246,13 @@ class Workspace extends BaseController
                     (new \App\Libraries\RouterOs())->provisionPppoe($routerRow, (string) $data['mikrotik_username'], $mikrotikPassword, (string) $plan['name'], (string) $data['connection_mode']);
                 } catch (\Throwable $e) {
                     return redirect()->back()->withInput()->with('error', 'Sinkronisasi PPPoE ke MikroTik gagal: ' . $e->getMessage());
+                }
+            } else {
+                $routerRow = db_connect()->table('routers')->where('id', (int) $data['mikrotik_router_id'])->get()->getRowArray();
+                try {
+                    (new \App\Libraries\RouterOs())->syncStaticIpQueue($routerRow, 'MYNET-' . $customerCode, (string) $data['static_ip'], (string) $plan['speed_download'], (string) $plan['speed_upload']);
+                } catch (\Throwable $e) {
+                    return redirect()->back()->withInput()->with('error', 'Sinkronisasi Simple Queue IP static gagal: ' . $e->getMessage());
                 }
             }
             if ((int) db_connect()->table('fiber_odps')->where('odc_id', $port['odc_id'])->countAllResults() < 4) return redirect()->back()->withInput()->with('error', 'ODC harus memiliki minimal 4 ODP sebelum pelanggan dapat dipasang.');

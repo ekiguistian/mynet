@@ -104,4 +104,48 @@ class RouterOs
             throw new RuntimeException('Provisioning PPPoE gagal: ' . $e->getMessage(), 0, $e);
         }
     }
+
+    public function syncStaticIpQueue(array $router, string $queueName, string $ipAddress, string $downloadSpeed, string $uploadSpeed): void
+    {
+        $baseUrl = rtrim((string) $router['base_url'], '/');
+        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
+        $encrypted = base64_decode((string) $router['password_encrypted'], true);
+        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
+        $target = $ipAddress . (str_contains($ipAddress, ':') ? '/128' : '/32');
+        $payload = [
+            'name' => $queueName,
+            'target' => $target,
+            'max-limit' => $this->routerRate($uploadSpeed) . '/' . $this->routerRate($downloadSpeed),
+            'comment' => 'Mynet static IP ' . $queueName,
+        ];
+        $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
+        $options = ['auth' => [$router['username'], Services::encrypter()->decrypt($encrypted)], 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json']];
+        $url = $baseUrl . '/rest/queue/simple';
+        try {
+            $lookup = $client->request('GET', $url . '?name=' . rawurlencode($queueName), $options);
+            if ($lookup->getStatusCode() < 200 || $lookup->getStatusCode() >= 300) throw new RuntimeException('Gagal membaca Simple Queue pada RouterOS.');
+            $found = json_decode((string) $lookup->getBody(), true, 512, JSON_THROW_ON_ERROR);
+            $existing = is_array($found) ? ($found[0] ?? null) : null;
+            if (is_array($existing) && ! empty($existing['.id'])) {
+                $response = $client->request('PATCH', $url . '/' . rawurlencode((string) $existing['.id']), $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
+            } else {
+                $response = $client->request('PUT', $url, $options + ['body' => json_encode($payload, JSON_THROW_ON_ERROR)]);
+            }
+            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS menolak sinkronisasi Simple Queue (HTTP ' . $response->getStatusCode() . ').');
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Sinkronisasi Simple Queue gagal: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    private function routerRate(string $rate): string
+    {
+        $value = strtolower(trim($rate));
+        if (! preg_match('/^(\d+(?:\.\d+)?)\s*(bps|k|kbps|kbit\/s|m|mbps|mbit\/s|g|gbps|gbit\/s)$/', $value, $matches)) {
+            throw new RuntimeException('Kecepatan paket harus memiliki satuan bps, K, Mbps, atau Gbps.');
+        }
+        $unit = match ($matches[2]) {
+            'bps' => '', 'k', 'kbps', 'kbit/s' => 'K', 'm', 'mbps', 'mbit/s' => 'M', default => 'G',
+        };
+        return $matches[1] . $unit;
+    }
 }

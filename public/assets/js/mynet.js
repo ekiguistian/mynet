@@ -102,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (customerForm) {
     const branch = customerForm.querySelector('#field-branch_id');
     const service = customerForm.querySelector('#field-service_type');
+    const mode = customerForm.querySelector('#field-connection_mode');
+    const staticQueueHelp = customerForm.querySelector('[data-static-queue-help]');
     const branchFields = [...customerForm.querySelectorAll('[data-branch-filter]')];
     const connectionFields = [...customerForm.querySelectorAll('[data-connection-mode]')];
     const applyFilters = () => {
@@ -120,6 +122,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const input = wrapper.querySelector('input, select');
         if (input) input.required = visible && (input.id === 'field-mikrotik_username' || input.id === 'field-mikrotik_password' || input.id === 'field-static_ip');
       });
+      if (mode) {
+        const createOption = [...mode.options].find(option => option.value === 'create');
+        const staticOnly = service?.value === 'static_ip';
+        if (createOption) createOption.hidden = staticOnly;
+        if (staticOnly) {
+          mode.value = 'sync';
+          mode.disabled = true;
+          if (!customerForm.querySelector('input[name="connection_mode"][type="hidden"]')) {
+            const fixedMode = document.createElement('input');
+            fixedMode.type = 'hidden';
+            fixedMode.name = 'connection_mode';
+            fixedMode.value = 'sync';
+            customerForm.append(fixedMode);
+          }
+        } else {
+          mode.disabled = false;
+          customerForm.querySelector('input[name="connection_mode"][type="hidden"]')?.remove();
+        }
+        if (staticQueueHelp) staticQueueHelp.hidden = !staticOnly;
+      }
     };
     branch?.addEventListener('change', applyFilters);
     service?.addEventListener('change', applyFilters);
