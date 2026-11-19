@@ -1,0 +1,16 @@
+.logout-form {
+    display: flex;
+}
+
+.logout-dot {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.logout-link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}

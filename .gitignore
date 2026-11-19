@@ -1,21 +1,50 @@
-# the composer package lock file and install directory
-# Commit your application's lock file http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file
-# You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
-# /composer.lock
-/fuel/vendor
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# the fuelphp document
-/docs/
+# Local environment and secrets
+/.env*
+!/.env.example
+/secrets/
+*.pem
+*.key
 
-# you may install these packages with `oil package`.
-# http://fuelphp.com/docs/packages/oil/package.html
-# /fuel/packages/auth/
-# /fuel/packages/email/
-# /fuel/packages/oil/
-# /fuel/packages/orm/
-# /fuel/packages/parser/
+# Composer dependencies
+/vendor/
 
-# dynamically generated files
-/fuel/app/logs/*/*/*
-/fuel/app/cache/*/*
-/fuel/app/config/crypt.php
+# CodeIgniter writable runtime data
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/queue/*
+!/writable/queue/index.html
+php_errors.log
+
+# Tests, coverage and generated docs
+/tests/coverage*
+/phpunit
+/builds/
+
+# Front-end dependencies and generated assets
+/node_modules/
+/public/build/
+
+# Local databases and dumps
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.dump
