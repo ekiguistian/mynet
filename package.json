@@ -5,7 +5,7 @@
   "description": "Local frontend tooling for Mynet Billing",
   "scripts": {
     "build": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i resources/css/tailwind.css -o public/assets/css/tailwind.css --minify",
+    "build:css": "tailwindcss -i resources/css/tailwind.css -o public/assets/css/tailwind.css --minify && node scripts/normalize-css.mjs",
     "build:js": "esbuild resources/js/app.js --bundle --minify --outfile=public/assets/js/app.bundle.js && node scripts/trim-bundle.mjs",
     "watch:css": "tailwindcss -i resources/css/tailwind.css -o public/assets/css/tailwind.css --watch"
   },
