@@ -69,6 +69,10 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - Template pesan mendukung antrean terjadwal, penerima pelanggan, atau grup peran teknisi/keuangan/admin. Grup dapat dikirim sebagai ID grup Fonnte atau NgirimWA; tanpa ID grup, sistem mengirim satu pesan ke tiap nomor staf aktif pada cabang.
 - Tiket maintenance mencakup antrean, prioritas, penjadwalan, penugasan teknisi, riwayat pembaruan, notifikasi WhatsApp, dan pembaruan status.
 
+## Frontend assets (Tailwind CSS dan Alpine.js)
+
+Dependensi npm dipakai untuk pengembangan lokal. Setelah clone, jalankan `npm ci`, lalu `npm run build` untuk membuat `public/assets/css/tailwind.css` dan `public/assets/js/app.bundle.js`. File hasil build disimpan di Git, sehingga deploy produksi melalui aaPanel tidak memerlukan Node.js/npm. Gunakan `npm run watch:css` saat mengembangkan utility Tailwind.
+
 ## Peran dan akses singkat
 
 | Peran | Akses utama |

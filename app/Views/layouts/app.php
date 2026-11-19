@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<?= base_url('assets/css/tailwind.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/mynet.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/mynet-overrides.css') ?>">
 </head>
@@ -75,6 +76,6 @@
     </section>
     <footer class="site-social-links"><?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok', 'youtube' => 'YouTube', 'x' => 'X'] as $key => $label): ?><?php if (mynet_setting('social_' . $key)): ?><a href="<?= esc(mynet_setting('social_' . $key)) ?>" target="_blank" rel="noopener noreferrer"><?= esc($label) ?></a><?php endif; ?><?php endforeach; ?></footer>
 </main>
-<script src="<?= base_url('assets/js/mynet.js') ?>" defer></script>
+<script src="<?= base_url('assets/js/app.bundle.js') ?>" defer></script>
 </body>
 </html>
