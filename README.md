@@ -173,6 +173,8 @@ php spark migrate:status
    php spark db:seed MynetSeeder
    ```
 
+   Seeder membuat akun administrator utama dengan username `administrator@mynet.local` dan peran `superadmin`. Password awalnya adalah nilai `MYNET_SEED_ADMIN_PASSWORD` yang Anda isi sendiri di `.env` sebelum seeder dijalankan; README tidak menyediakan password bawaan. Akun akan diminta mengganti password saat login pertama.
+
 5. Verifikasi status migrasi:
 
    ```bash
@@ -223,7 +225,7 @@ flock -n /tmp/mynet-wa-queue.lock sh -c 'cd <direktori-proyek> && <path-php-cli>
 ### 10. Verifikasi aplikasi
 
 1. Buka `https://<domain-anda>/` dan pastikan halaman login tampil.
-2. Masuk menggunakan akun administrator awal yang dibuat oleh seeder, lalu ganti password awal.
+2. Masuk dengan username `administrator@mynet.local` dan password awal yang Anda atur melalui `MYNET_SEED_ADMIN_PASSWORD`, lalu ganti password saat diminta.
 3. Pastikan dashboard terbuka, data awal tampil, dan tidak ada error di log aplikasi `writable/logs/` maupun log PHP/web server aaPanel.
 4. Jika memakai payment gateway, daftarkan callback hanya untuk provider yang diaktifkan:
 
