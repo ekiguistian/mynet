@@ -7,14 +7,14 @@ ${r?'Expression: "'+r+`"
 
 alpinejs/dist/module.esm.js:
   (*! Bundled license information:
-  
+
   @vue/shared/dist/shared.esm-bundler.js:
     (**
     * @vue/shared v3.5.41
     * (c) 2018-present Yuxi (Evan) You and Vue contributors
     * @license MIT
     **)
-  
+
   @vue/reactivity/dist/reactivity.esm-bundler.js:
     (**
     * @vue/reactivity v3.5.41
