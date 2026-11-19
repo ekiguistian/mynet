@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\PaymentGateway;
+use App\Libraries\IntegrationConfig;
 use Throwable;
 
 class Billing extends BaseController
@@ -59,7 +60,7 @@ class Billing extends BaseController
         $paid = (float) $db->table('payments')->selectSum('amount')->where('invoice_id', $invoiceId)->where('status', 'paid')->get()->getRow()->amount;
         $amount = (float) $invoice['total'] - $paid;
         if ($amount <= 0) return redirect()->back()->with('error', 'Tidak ada sisa tagihan untuk dibayar.');
-        $provider = strtolower((string) env('PAYMENT_PROVIDER'));
+        $provider = strtolower((string) ((new IntegrationConfig())->get('payment')['provider'] ?? ''));
         $reference = 'MN-' . date('ymdHis') . '-' . strtoupper(bin2hex(random_bytes(3)));
         $db->table('payments')->insert([
             'branch_id' => $invoice['branch_id'], 'invoice_id' => $invoiceId, 'customer_id' => $invoice['customer_id'],

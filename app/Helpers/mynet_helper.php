@@ -37,21 +37,36 @@ if (! function_exists('mynet_menus')) {
             ['label' => 'Router MikroTik', 'icon' => '⌘', 'url' => '/area/routers'],
             ['label' => 'Pengguna', 'icon' => '♙', 'url' => '/area/users'],
             ['label' => 'Cabang', 'icon' => '⌖', 'url' => '/area/branches'],
+            ['label' => 'Tiket maintenance', 'icon' => '▣', 'url' => '/tickets'],
+            ['label' => 'Antrean WhatsApp', 'icon' => '◷', 'url' => '/notifications/queue'],
+            ['label' => 'Pengaturan aplikasi', 'icon' => '⚙', 'url' => '/settings'],
+            ['label' => 'Integrasi API', 'icon' => '⌘', 'url' => '/integrations'],
+            ['label' => 'Template WhatsApp', 'icon' => '✉', 'url' => '/integrations/templates'],
+            ['label' => 'API eksternal', 'icon' => '⇄', 'url' => '/settings/api-keys'],
         ];
 
         $allow = [
             'superadmin' => ['*'], 'administrator' => ['*'],
-            'admin' => ['Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran', 'Stok barang', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Voucher hotspot', 'Router MikroTik', 'Pengguna'],
-            'teknisi' => ['Pelanggan', 'Absensi', 'Tugas teknisi', 'Voucher hotspot', 'Stok barang'],
-            'keuangan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Keuangan', 'Bonus & fee'],
-            'noc' => ['Pelanggan', 'Paket layanan', 'Voucher hotspot', 'Router MikroTik', 'Tugas teknisi'],
-            'sales' => ['Pelanggan', 'Tugas teknisi', 'Bonus & fee'],
-            'pelanggan' => ['Pelanggan', 'Tagihan', 'Pembayaran'],
+            'admin' => ['Pelanggan', 'Paket layanan', 'Tagihan', 'Pembayaran', 'Stok barang', 'Keuangan', 'Absensi', 'Tugas teknisi', 'Bonus & fee', 'Aturan bonus', 'Voucher hotspot', 'Router MikroTik', 'Pengguna', 'Tiket maintenance', 'Antrean WhatsApp'],
+            'teknisi' => ['Pelanggan', 'Absensi', 'Tugas teknisi', 'Voucher hotspot', 'Stok barang', 'Tiket maintenance'],
+            'keuangan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Keuangan', 'Bonus & fee', 'Antrean WhatsApp'],
+            'noc' => ['Pelanggan', 'Paket layanan', 'Voucher hotspot', 'Router MikroTik', 'Tugas teknisi', 'Tiket maintenance', 'Antrean WhatsApp'],
+            'sales' => ['Pelanggan', 'Tugas teknisi', 'Bonus & fee', 'Tiket maintenance'],
+            'pelanggan' => ['Pelanggan', 'Tagihan', 'Pembayaran', 'Tiket maintenance'],
         ];
         $visible = $allow[$role] ?? [];
 
         return array_values(array_filter($all, static function (array $item) use ($visible): bool {
             return in_array('*', $visible, true) || in_array($item['label'], $visible, true) || $item['url'] === '/dashboard';
         }));
+    }
+}
+
+if (! function_exists('mynet_setting')) {
+    function mynet_setting(string $key, ?string $default = null): ?string
+    {
+        static $settings = null;
+        if ($settings === null) $settings = (new \App\Libraries\AppSettings())->all();
+        return $settings[$key] ?? $default;
     }
 }

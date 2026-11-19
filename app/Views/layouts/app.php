@@ -4,7 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <title><?= esc($title ?? 'Mynet') ?> · Mynet Billing</title>
+    <?php $siteName = mynet_setting('site_name', 'Mynet Billing'); $googleTagId = mynet_setting('google_tag_id', ''); ?>
+    <title><?= esc($title ?? 'Ringkasan') ?> · <?= esc($siteName) ?></title>
+    <?php if (mynet_setting('favicon_url')): ?><link rel="icon" href="<?= base_url(mynet_setting('favicon_url')) ?>"><?php else: ?><link rel="icon" href="<?= base_url('favicon.ico') ?>"><?php endif; ?>
+    <?php if (mynet_setting('seo_description')): ?><meta name="description" content="<?= esc(mynet_setting('seo_description')) ?>"><?php endif; ?>
+    <?php if (mynet_setting('seo_keywords')): ?><meta name="keywords" content="<?= esc(mynet_setting('seo_keywords')) ?>"><?php endif; ?>
+    <meta name="robots" content="<?= esc(mynet_setting('seo_robots', 'noindex,nofollow')) ?>">
+    <?php if (mynet_setting('social_image_url')): ?><meta property="og:image" content="<?= esc(mynet_setting('social_image_url')) ?>"><meta name="twitter:card" content="summary_large_image"><?php endif; ?>
+    <?php if (mynet_setting('google_site_verification')): ?><meta name="google-site-verification" content="<?= esc(mynet_setting('google_site_verification')) ?>"><?php endif; ?>
+    <?php if (mynet_setting('canonical_url')): ?><link rel="canonical" href="<?= esc(rtrim(mynet_setting('canonical_url'), '/') . '/' . trim(uri_string(), '/')) ?>"><?php endif; ?>
+    <?php if (preg_match('/^GTM-[A-Z0-9]+$/', (string) $googleTagId)): ?><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','<?= esc($googleTagId) ?>');</script><?php elseif (preg_match('/^(G-[A-Z0-9]+|AW-[0-9]+)$/', (string) $googleTagId)): ?><script async src="https://www.googletagmanager.com/gtag/js?id=<?= esc($googleTagId) ?>"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','<?= esc($googleTagId) ?>');</script><?php endif; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -12,11 +21,12 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/mynet-overrides.css') ?>">
 </head>
 <body class="app-shell">
+<?php if (preg_match('/^GTM-[A-Z0-9]+$/', (string) $googleTagId)): ?><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?= esc($googleTagId) ?>" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><?php endif; ?>
 <div class="mobile-scrim" data-menu-close></div>
 <aside class="sidebar" id="sidebar">
     <a href="<?= site_url('/dashboard') ?>" class="brand">
-        <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 22V10h5v2.2a5.8 5.8 0 0 1 4.8-2.6c3.6 0 5.8 2.5 5.8 6.1V22h-5.1v-5.4c0-1.8-.9-2.9-2.4-2.9s-2.5 1.1-2.5 2.9V22H6Zm18.5 0V7h5v15h-5Z" fill="currentColor"/></svg></span>
-        <span class="brand-copy"><strong>mynet</strong><small>NETWORK MANAGER</small></span>
+        <span class="brand-mark"><?php if (mynet_setting('logo_url')): ?><img src="<?= base_url(mynet_setting('logo_url')) ?>" alt=""><?php else: ?><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 22V10h5v2.2a5.8 5.8 0 0 1 4.8-2.6c3.6 0 5.8 2.5 5.8 6.1V22h-5.1v-5.4c0-1.8-.9-2.9-2.4-2.9s-2.5 1.1-2.5 2.9V22H6Zm18.5 0V7h5v15h-5Z" fill="currentColor"/></svg><?php endif; ?></span>
+        <span class="brand-copy"><strong><?= esc($siteName) ?></strong><small><?= esc(mynet_setting('site_tagline', 'NETWORK MANAGER')) ?></small></span>
     </a>
     <div class="workspace-label"><span class="status-dot"></span> OPERASIONAL <span class="workspace-caret">⌄</span></div>
     <div class="nav-caption">MENU UTAMA</div>
@@ -61,6 +71,7 @@
         <?php if (session()->getFlashdata('warning')): ?><div class="flash flash-warning"><span>!</span><?= esc(session()->getFlashdata('warning')) ?><button type="button" data-dismiss>×</button></div><?php endif; ?>
         <?= $this->renderSection('content') ?>
     </section>
+    <footer class="site-social-links"><?php foreach (['facebook' => 'Facebook', 'instagram' => 'Instagram', 'tiktok' => 'TikTok', 'youtube' => 'YouTube', 'x' => 'X'] as $key => $label): ?><?php if (mynet_setting('social_' . $key)): ?><a href="<?= esc(mynet_setting('social_' . $key)) ?>" target="_blank" rel="noopener noreferrer"><?= esc($label) ?></a><?php endif; ?><?php endforeach; ?></footer>
 </main>
 <script src="<?= base_url('assets/js/mynet.js') ?>" defer></script>
 </body>

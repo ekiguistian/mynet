@@ -19,14 +19,15 @@ class PaymentGateway
 
     private function tripay(array $payment, array $invoice, array $customer): array
     {
-        $apiKey = (string) env('TRIPAY_API_KEY');
-        $privateKey = (string) env('TRIPAY_PRIVATE_KEY');
-        $merchantCode = (string) env('TRIPAY_MERCHANT_CODE');
+        $config = (new IntegrationConfig())->get('payment');
+        $apiKey = (string) ($config['tripay_api_key'] ?? '');
+        $privateKey = (string) ($config['tripay_private_key'] ?? '');
+        $merchantCode = (string) ($config['tripay_merchant_code'] ?? '');
         if ($apiKey === '' || $privateKey === '' || $merchantCode === '') throw new RuntimeException('Kredensial Tripay belum lengkap.');
         $amount = (int) round((float) $payment['amount']);
         $merchantRef = $payment['external_reference'];
         $payload = [
-            'method' => env('TRIPAY_METHOD') ?: 'BRIVA',
+            'method' => $config['tripay_method'] ?? 'BRIVA',
             'merchant_ref' => $merchantRef,
             'amount' => $amount,
             'customer_name' => $customer['full_name'],
@@ -40,7 +41,7 @@ class PaymentGateway
             'expired_time' => time() + 86400,
             'signature' => hash_hmac('sha256', $merchantCode . $merchantRef . $amount, $privateKey),
         ];
-        $sandbox = (string) env('TRIPAY_MODE', 'sandbox') !== 'production';
+        $sandbox = (string) ($config['tripay_mode'] ?? 'sandbox') !== 'production';
         $url = $sandbox ? 'https://tripay.co.id/api-sandbox/transaction/create' : 'https://tripay.co.id/api/transaction/create';
         $response = $this->request($url, [
             'Authorization' => 'Bearer ' . $apiKey,
@@ -54,9 +55,10 @@ class PaymentGateway
 
     private function midtrans(array $payment, array $invoice, array $customer): array
     {
-        $serverKey = (string) env('MIDTRANS_SERVER_KEY');
+        $config = (new IntegrationConfig())->get('payment');
+        $serverKey = (string) ($config['midtrans_server_key'] ?? '');
         if ($serverKey === '') throw new RuntimeException('MIDTRANS_SERVER_KEY belum diatur.');
-        $sandbox = (string) env('MIDTRANS_MODE', 'sandbox') !== 'production';
+        $sandbox = (string) ($config['midtrans_mode'] ?? 'sandbox') !== 'production';
         $url = $sandbox ? 'https://app.sandbox.midtrans.com/snap/v1/transactions' : 'https://app.midtrans.com/snap/v1/transactions';
         $payload = [
             'transaction_details' => [
@@ -82,7 +84,8 @@ class PaymentGateway
 
     private function xendit(array $payment, array $invoice, array $customer): array
     {
-        $secretKey = (string) env('XENDIT_SECRET_KEY');
+        $config = (new IntegrationConfig())->get('payment');
+        $secretKey = (string) ($config['xendit_secret_key'] ?? '');
         if ($secretKey === '') throw new RuntimeException('XENDIT_SECRET_KEY belum diatur.');
         $payload = [
             'external_id' => $payment['external_reference'],

@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\IntegrationConfig;
+
 class PaymentWebhook extends BaseController
 {
     public function handle(string $provider)
@@ -94,7 +96,7 @@ class PaymentWebhook extends BaseController
 
     private function verifyTripay(string $raw): bool
     {
-        $privateKey = (string) env('TRIPAY_PRIVATE_KEY');
+        $privateKey = (string) ((new IntegrationConfig())->get('payment')['tripay_private_key'] ?? '');
         $signature = $this->request->getHeaderLine('X-Callback-Signature');
         return $privateKey !== '' && $signature !== '' && hash_equals(hash_hmac('sha256', $raw, $privateKey), $signature)
             && $this->request->getHeaderLine('X-Callback-Event') === 'payment_status';
@@ -102,7 +104,7 @@ class PaymentWebhook extends BaseController
 
     private function verifyMidtrans(array $payload): bool
     {
-        $serverKey = (string) env('MIDTRANS_SERVER_KEY');
+        $serverKey = (string) ((new IntegrationConfig())->get('payment')['midtrans_server_key'] ?? '');
         $signature = (string) ($payload['signature_key'] ?? '');
         if ($serverKey === '' || $signature === '') return false;
         $expected = hash('sha512', (string) ($payload['order_id'] ?? '') . (string) ($payload['status_code'] ?? '')
@@ -112,7 +114,7 @@ class PaymentWebhook extends BaseController
 
     private function verifyXendit(): bool
     {
-        $token = (string) env('XENDIT_WEBHOOK_TOKEN');
+        $token = (string) ((new IntegrationConfig())->get('payment')['xendit_webhook_token'] ?? '');
         return $token !== '' && hash_equals($token, $this->request->getHeaderLine('x-callback-token'));
     }
 

@@ -34,6 +34,15 @@ class MynetSeeder extends Seeder
             ]);
         }
 
+        if ($db->table('message_templates')->countAllResults() === 0) {
+            $db->table('message_templates')->insertBatch([
+                ['code' => 'maintenance_new', 'name' => 'Tiket maintenance baru', 'body' => 'Tiket {{nomor_tiket}} baru dari {{nama}} masuk ke antrean. Mohon ditinjau.', 'active' => 1, 'created_at' => $now],
+                ['code' => 'maintenance_assigned', 'name' => 'Penugasan teknisi', 'body' => 'Halo {{nama}}, Anda mendapat tiket maintenance {{nomor_tiket}}. Silakan periksa antrean tugas.', 'active' => 1, 'created_at' => $now],
+                ['code' => 'maintenance_update', 'name' => 'Pembaruan tiket pelanggan', 'body' => 'Halo {{nama}}, status tiket maintenance {{nomor_tiket}} diperbarui menjadi {{status}}.', 'active' => 1, 'created_at' => $now],
+                ['code' => 'invoice_reminder', 'name' => 'Pengingat tagihan', 'body' => 'Halo {{nama}}, tagihan {{nomor_tagihan}} periode {{periode}} sebesar {{total}} menunggu pembayaran.', 'active' => 1, 'created_at' => $now],
+            ]);
+        }
+
         $username = 'administrator@mynet.local';
         if (! $db->table('users')->where('username', $username)->countAllResults()) {
             $seedPassword = (string) env('MYNET_SEED_ADMIN_PASSWORD');

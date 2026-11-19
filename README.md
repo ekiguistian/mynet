@@ -23,6 +23,9 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - Pembayaran tagihan menerima input kasir/transfer manual atau tautan checkout payment gateway. Pembayaran sebagian didukung.
 - Webhook gateway memeriksa signature/token, mencocokkan jumlah pembayaran, menolak referensi yang tidak dikenal, memperbarui status tagihan, dan mengabaikan event berulang.
 - Pengingat tagihan WhatsApp dapat dikirim dari daftar tagihan. Status antrean dan kegagalan dicatat di log pesan.
+- Invoice dapat dicetak langsung pada format thermal 80 mm atau A4, dan tersedia sebagai PDF A4.
+- Administrator dapat mengatur nama aplikasi, logo, favicon, tautan sosial, gambar preview Open Graph, canonical URL, robots, verifikasi Google Search Console, dan Google Tag/Tag Manager dari menu Pengaturan aplikasi.
+- API key eksternal memiliki scope dan batas cabang. Secret ditampilkan sekali saat dibuat, disimpan sebagai hash, dan dapat dicabut.
 
 ### MikroTik dan voucher hotspot
 
@@ -58,7 +61,9 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - **Tripay** untuk membuat transaksi pembayaran tertutup dan menerima callback.
 - **Midtrans Snap** untuk membuat checkout dan menerima notifikasi transaksi.
 - **Xendit Invoice API** untuk membuat invoice dan menerima webhook.
-- Kunci API, private key, webhook token, dan mode sandbox/live dibaca dari `.env`, bukan disimpan di browser atau database.
+- Kredensial integrasi dapat diatur dari halaman Integrasi API dan disimpan terenkripsi menggunakan `encryption.key`. `.env` tetap dapat dipakai sebagai konfigurasi cadangan saat belum ada konfigurasi database.
+- Template pesan mendukung antrean terjadwal, penerima pelanggan, atau grup peran teknisi/keuangan/admin. Grup dapat dikirim sebagai ID grup Fonnte atau NgirimWA; tanpa ID grup, sistem mengirim satu pesan ke tiap nomor staf aktif pada cabang.
+- Tiket maintenance mencakup antrean, prioritas, penjadwalan, penugasan teknisi, riwayat pembaruan, notifikasi WhatsApp, dan pembaruan status.
 
 ## Peran dan akses singkat
 
@@ -76,6 +81,7 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 ## Persyaratan
 
 - PHP 8.2 atau lebih baru dengan ekstensi `intl`, `mbstring`, `mysqli`, `curl`, `openssl`, `json`, dan `fileinfo`.
+- Ekstensi PHP `dom` diperlukan oleh Dompdf untuk PDF invoice.
 - Composer 2.
 - MySQL/MariaDB.
 - RouterOS v7 dengan REST API aktif untuk sinkronisasi voucher.
@@ -142,7 +148,17 @@ WA_PROVIDER = fonnte
 FONNTE_TOKEN = isi_token_perangkat
 ```
 
-Nomor pelanggan disimpan sesuai input; integrasi Fonnte memakai kode negara Indonesia `62`. Tombol pengingat tersedia di daftar tagihan. Penerimaan HTTP `200` dari penyedia menandakan pesan diterima/masuk antrean, bukan bukti pesan sudah dibaca.
+Konfigurasi juga dapat dimasukkan melalui **Pengaturan → Integrasi API**. Rahasia yang sudah disimpan tidak ditampilkan lagi dan nilai pada input rahasia yang dikosongkan akan dipertahankan. Nomor pelanggan disimpan sesuai input; integrasi Fonnte menambahkan kode negara Indonesia `62` untuk nomor biasa. Pengingat tagihan tersedia dari daftar tagihan.
+
+ID grup WhatsApp untuk teknisi, keuangan, dan admin diatur pada bagian **Grup penerima WhatsApp**. ID dapat ditetapkan per cabang dengan ID default sebagai fallback. Kedua penyedia menerima ID grup berakhiran `@g.us`; NgirimWA menyediakan daftar grup lewat endpoint `GET /groups`, sementara Fonnte perlu memperbarui daftar grup setelah perangkat bergabung ke grup. Jangan berulang kali memanggil pembaruan daftar Fonnte. Jika ID tidak diatur, sistem mengirim ke nomor staf aktif pada cabang. Penerimaan pesan oleh API penyedia belum membuktikan bahwa pesan telah dibaca.
+
+Pesan terjadwal diproses oleh command CLI. Pasang cron setiap menit di server Linux:
+
+```cron
+* * * * * flock -n /tmp/mynet-wa-queue.lock sh -c 'cd /path/mynet && php spark whatsapp:process-queue >> writable/logs/whatsapp-queue.log 2>&1'
+```
+
+Worker mengambil maksimal 50 pesan yang sudah waktunya per eksekusi, mencatat percobaan, dan memulihkan antrean yang berstatus `sending` lebih dari satu jam. `flock` mencegah jadwal cron meluncurkan worker yang tumpang tindih.
 
 ## Konfigurasi payment gateway
 
@@ -181,6 +197,8 @@ https://domain-anda/payments/webhook/xendit
 
 Uji terlebih dahulu pada sandbox masing-masing gateway. Pastikan callback dapat diakses publik melalui HTTPS sebelum mengaktifkan transaksi produksi.
 
+Kredensial juga dapat dimasukkan dari **Pengaturan → Integrasi API**. Halaman tersebut menguji kelengkapan konfigurasi, sedangkan transaksi dan callback tetap perlu diverifikasi melalui sandbox gateway.
+
 ## Konfigurasi RouterOS
 
 Gunakan RouterOS v7, aktifkan layanan HTTPS `www-ssl`, pasang sertifikat yang dipercaya server aplikasi, dan buat user khusus REST dengan izin minimum yang diperlukan untuk menulis user Hotspot. Batasi `available-from`/firewall router ke alamat server aplikasi atau VPN. Gunakan HTTPS dan biarkan verifikasi sertifikat aktif untuk penggunaan produksi.
@@ -197,12 +215,44 @@ Tambahkan router melalui menu **Router MikroTik** dengan endpoint seperti `https
 - `public/assets/` — stylesheet dan skrip antarmuka.
 - `.env.example` — daftar konfigurasi rahasia dan koneksi lokal; tidak berisi kredensial aktif.
 
+## API eksternal
+
+Buat API key dari **Pengaturan → API eksternal**, pilih scope yang dibutuhkan, lalu kirim token sebagai `Authorization: Bearer <token>`. Token di-hash di database, terikat ke cabang pembuat, dan dapat dicabut.
+
+| Method | Endpoint | Scope |
+|---|---|---|
+| `GET` | `/api/v1/ping` | Token aktif |
+| `GET` | `/api/v1/customers` | `customers_read` |
+| `GET` | `/api/v1/invoices` | `invoices_read` |
+| `GET` | `/api/v1/tickets` | `tickets_read` |
+| `POST` | `/api/v1/tickets` | `tickets_write` |
+
+Contoh membuat tiket (kunci dengan scope `tickets_write`):
+
+```bash
+  curl -X POST https://domain-anda/api/v1/tickets \
+  -H 'Authorization: Bearer mynet_live_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{"branch_id":1,"title":"Gangguan koneksi","description":"Pelanggan tidak mendapat akses","priority":"high"}'
+```
+
+## Cetak invoice dan tiket maintenance
+
+Menu **Tagihan** menyediakan tampilan cetak A4, cetak thermal 80 mm, dan unduhan PDF A4. Pelanggan hanya dapat membuka invoice miliknya; staf dibatasi pada cabang yang diizinkan.
+
+Tiket maintenance tersedia untuk pelanggan, admin, NOC, dan teknisi. Pelanggan membuat laporan dari akunnya; staf dapat membuat tiket untuk cabang, administrator/NOC menugaskan teknisi, lalu teknisi mengubah status dan menambahkan catatan penyelesaian. API eksternal dengan scope `tickets_write` dapat membuat tiket dan memicu notifikasi antrean.
+
 ## Referensi API
 
 - [CodeIgniter 4](https://codeigniter.com/user_guide/)
 - [MikroTik RouterOS REST API](https://manual.mikrotik.com/docs/developer-guides/rest-api/)
 - [NgirimWA API](https://panduan.ngirimwa.com/api/kirim-pesan)
 - [Fonnte: kirim pesan API](https://docs.fonnte.com/api-send-message/)
+- [Fonnte: melihat ID grup WhatsApp](https://docs.fonnte.com/api-get-whatsapp-group-list/)
+- [Dompdf](https://github.com/dompdf/dompdf)
 - [Tripay Developer Guide](https://tripay.co.id/developer)
 - [Midtrans Snap integration](https://docs.midtrans.com/docs/snap-snap-integration-guide) dan [notifikasi transaksi](https://docs.midtrans.com/docs/https-notification-webhooks)
 - [Xendit API reference](https://developers.xendit.co/api-reference/)
+
+- [NgirimWA: kirim pesan dan ID grup](https://panduan.ngirimwa.com/api/grup-whatsapp)
+- [Fonnte: memperbarui daftar grup](https://docs.fonnte.com/api-update-whatsapp-group-list/)

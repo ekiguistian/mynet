@@ -41,6 +41,8 @@ php_errors.log
 # Front-end dependencies and generated assets
 /node_modules/
 /public/build/
+/public/uploads/branding/*
+!/public/uploads/branding/.gitkeep
 
 # Local databases and dumps
 *.sqlite

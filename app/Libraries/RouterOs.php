@@ -7,6 +7,26 @@ use RuntimeException;
 
 class RouterOs
 {
+    public function testConnection(array $router): string
+    {
+        $baseUrl = rtrim((string) $router['base_url'], '/');
+        if (! str_starts_with($baseUrl, 'https://')) throw new RuntimeException('REST API router wajib menggunakan HTTPS.');
+        $encrypted = base64_decode((string) $router['password_encrypted'], true);
+        if ($encrypted === false) throw new RuntimeException('Kredensial router tidak valid.');
+        try {
+            $password = Services::encrypter()->decrypt($encrypted);
+            $client = Services::curlrequest(['timeout' => (int) env('MIKROTIK_TIMEOUT', 15), 'http_errors' => false, 'verify' => (bool) $router['verify_ssl']]);
+            $response = $client->request('GET', $baseUrl . '/rest/system/identity', [
+                'auth' => [$router['username'], $password], 'headers' => ['Accept' => 'application/json'],
+            ]);
+            if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) throw new RuntimeException('RouterOS mengembalikan HTTP ' . $response->getStatusCode() . '.');
+            $identity = json_decode((string) $response->getBody(), true);
+            return (string) ($identity[0]['name'] ?? $identity['name'] ?? $router['name']);
+        } catch (\Throwable $e) {
+            throw new RuntimeException('Uji koneksi RouterOS gagal: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
     public function createHotspotUser(array $router, string $username, string $password, string $profile): void
     {
         $baseUrl = rtrim((string) $router['base_url'], '/');

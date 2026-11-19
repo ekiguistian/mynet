@@ -16,4 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
       row.hidden = needle !== '' && !row.textContent.toLocaleLowerCase().includes(needle);
     });
   });
+  const groupSelect = document.querySelector('[data-target-group]');
+  const customerTarget = document.querySelector('[data-customer-target]');
+  const syncCustomerTarget = () => {
+    if (!customerTarget || !groupSelect) return;
+    customerTarget.required = groupSelect.value === 'pelanggan';
+    customerTarget.disabled = groupSelect.value !== 'pelanggan';
+  };
+  groupSelect?.addEventListener('change', syncCustomerTarget);
+  syncCustomerTarget();
+  const templateSelect = document.querySelector('[data-message-template]');
+  const messageBody = document.querySelector('[data-message-body]');
+  templateSelect?.addEventListener('change', () => {
+    const body = templateSelect.selectedOptions[0]?.dataset.body;
+    if (body && messageBody) messageBody.value = body;
+  });
 });
