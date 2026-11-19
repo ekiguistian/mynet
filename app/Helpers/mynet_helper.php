@@ -1,5 +1,14 @@
 <?php
 
+if (! function_exists('mynet_user')) {
+    function mynet_user(?string $key = null)
+    {
+        $user = session('user') ?? [];
+
+        return $key === null ? $user : ($user[$key] ?? null);
+    }
+}
+
 if (! function_exists('mynet_money')) {
     function mynet_money($value): string
     {
