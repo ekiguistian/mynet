@@ -87,7 +87,137 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 - RouterOS v7 dengan REST API aktif untuk sinkronisasi voucher.
 - URL HTTPS publik untuk callback payment gateway pada lingkungan produksi.
 
-## Instalasi lokal
+## Deploy produksi di aaPanel (Nginx) — `mynet.ekiguistian.com`
+
+Gunakan langkah ini untuk pemasangan dan pengujian langsung di server aaPanel. Pengujian development lokal bersifat opsional dan dijelaskan setelah panduan server.
+
+
+Panduan ini menggunakan database MySQL/MariaDB yang sudah dibuat, `sql_mynet_ekiguistian_com`. Ganti nilai user database dan password dengan kredensial yang sudah disimpan pada `.env` server. Jangan menyalin password, encryption key, atau token aktif ke README atau Git.
+
+### 1. Arahkan domain ke server
+
+1. Pada pengelola DNS domain `ekiguistian.com`, buat record `A` untuk host `mynet` yang menunjuk ke alamat IPv4 publik VPS aaPanel.
+2. Jika server memakai IPv6, tambahkan record `AAAA` yang benar. Hapus record `AAAA` yang tidak digunakan agar pengunjung tidak diarahkan ke server yang salah.
+3. Pastikan firewall VPS dan firewall penyedia hosting mengizinkan koneksi TCP pada port `80` dan `443`.
+4. Tunggu hingga DNS mengarah ke alamat server sebelum meminta sertifikat SSL.
+
+### 2. Buat website PHP di aaPanel
+
+1. Pastikan Nginx sudah terpasang di aaPanel. Buka **Website → PHP Project → Add Site**, pilih PHP Project, lalu tambahkan domain `mynet.ekiguistian.com`.
+2. Gunakan direktori proyek `/www/wwwroot/mynet.ekiguistian.com`, pilih PHP `8.2` atau lebih baru, dan gunakan Nginx sebagai web server.
+3. Pada pengaturan versi PHP di aaPanel, pastikan ekstensi `intl`, `mbstring`, `mysqli`/`mysqlnd`, `curl`, `openssl`, `json`, `fileinfo`, dan `dom` aktif. Gunakan versi PHP CLI yang sama dengan versi PHP website.
+4. Database tidak perlu dibuat ulang. Pastikan user database yang sudah dibuat memiliki izin koneksi dan perubahan skema pada `sql_mynet_ekiguistian_com`.
+
+### 3. Unggah kode aplikasi
+
+1. Unggah atau clone isi repositori ke `/www/wwwroot/mynet.ekiguistian.com`. Pastikan `composer.json`, `spark`, `app/`, `public/`, dan `writable/` berada langsung di direktori proyek tersebut, bukan di subfolder tambahan.
+2. Pada **Site Directory / Running Directory**, atur direktori berjalan ke `public`. Pastikan root Nginx akhirnya menunjuk ke `/www/wwwroot/mynet.ekiguistian.com/public`. Hanya folder `public/` yang boleh diakses web; `app/`, `writable/`, `vendor/`, dan `.env` harus berada di luar document root.
+3. Buka terminal aaPanel, lalu jalankan Composer dari direktori proyek:
+
+   ```bash
+   cd /www/wwwroot/mynet.ekiguistian.com
+   composer install --no-dev --optimize-autoloader --no-interaction
+   ```
+
+   Jika aaPanel menyediakan menu Composer, menu itu juga dapat dipakai. Pastikan Composer menggunakan PHP CLI `8.2` atau lebih baru dan ekstensi yang diperlukan sudah aktif.
+
+### 4. Siapkan `.env` produksi
+
+1. Salin `.env.example` menjadi `.env` di direktori proyek, atau buat `.env` baru di sana. Nama file harus persis `.env`, bukan `env` atau `.env.example`.
+2. Atur nilai produksi berikut. Jangan memasukkan nilai rahasia ke dokumentasi atau Git:
+
+   ```dotenv
+   CI_ENVIRONMENT = production
+   app.baseURL = 'https://mynet.ekiguistian.com/'
+
+   database.default.hostname = localhost
+   database.default.database = sql_mynet_ekiguistian_com
+   database.default.username = sql_mynet_ekiguistian_com
+   database.default.password = PASSWORD_DATABASE_AAPANEL
+   database.default.DBDriver = MySQLi
+   database.default.port = 3306
+
+   encryption.key = HASIL_RANDOM_64_KARAKTER_HEX
+   MYNET_SEED_ADMIN_PASSWORD = PASSWORD_ADMIN_UNIK_MINIMAL_12_KARAKTER
+   ```
+
+   Jika database berada di host lain, ganti `localhost` dan port sesuai konfigurasi hosting. Password administrator seed dipakai untuk akun awal `administrator@mynet.local`; akun akan diminta mengganti password saat login pertama. Buat encryption key baru sebelum kredensial router disimpan, lalu simpan dengan aman dan jangan menggantinya setelah digunakan.
+
+   Buat key melalui terminal:
+
+   ```bash
+   php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+   ```
+
+3. Pastikan `.env` tidak berada di `public/` dan tidak ikut di-commit. Gunakan `.env.example` hanya sebagai template tanpa password atau token aktif.
+
+### 5. Jalankan migrasi database
+
+Jalankan dari direktori proyek menggunakan PHP CLI versi website:
+
+```bash
+cd /www/wwwroot/mynet.ekiguistian.com
+php spark migrate
+php spark db:seed MynetSeeder
+```
+
+Perintah seeder hanya dijalankan pada pemasangan pertama untuk membuat data awal dan administrator. Untuk deploy berikutnya, buat backup database terlebih dahulu, lalu jalankan migrasi yang baru tanpa menjalankan seeder lagi.
+
+### 6. Atur hak akses file
+
+Pastikan `writable/` dan `public/uploads/` dapat ditulis oleh user PHP yang dipakai website di aaPanel. Gunakan pemilik user website dan permission direktori yang sesuai, misalnya `775`; jangan membuka permission `777` untuk seluruh proyek. Folder `app/` dan file `.env` tidak perlu diberi akses tulis oleh web server.
+
+### 7. Atur rewrite Nginx
+
+Buka konfigurasi atau **URL Rewrite** website `mynet.ekiguistian.com` di aaPanel. Tambahkan aturan berikut ke dalam blok `server {}` yang sudah ada. Jika sudah ada `location /`, ganti isinya agar tidak membuat blok duplikat:
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.php$is_args$args;
+}
+```
+
+Simpan konfigurasi. Gunakan tombol uji konfigurasi Nginx di aaPanel bila tersedia; jika memakai terminal server, jalankan `nginx -t` sebelum reload Nginx. Jangan arahkan root Nginx ke akar repository.
+
+### 8. Aktifkan HTTPS
+
+1. Buka website di aaPanel, pilih **SSL**, lalu terbitkan sertifikat Let's Encrypt untuk `mynet.ekiguistian.com`.
+2. Setelah sertifikat aktif, aktifkan pengalihan HTTP ke HTTPS.
+3. Jika DNS memakai proxy seperti Cloudflare dan validasi sertifikat gagal, ubah record sementara menjadi **DNS only**, terbitkan sertifikat, lalu aktifkan kembali proxy setelah koneksi origin HTTPS berfungsi.
+
+### 9. Aktifkan antrean WhatsApp (jika digunakan)
+
+Atur `WA_PROVIDER` dan kredensial penyedia di `.env` atau melalui **Pengaturan → Integrasi API**. Di **Cron → Add Task** aaPanel, pilih tugas shell yang berjalan setiap menit dan gunakan perintah berikut. Sesuaikan path PHP CLI jika nama versi yang terpasang berbeda:
+
+```bash
+flock -n /tmp/mynet-wa-queue.lock sh -c 'cd /www/wwwroot/mynet.ekiguistian.com && /www/server/php/82/bin/php spark whatsapp:process-queue >> writable/logs/whatsapp-queue.log 2>&1'
+```
+
+### 10. Verifikasi aplikasi
+
+1. Buka `https://mynet.ekiguistian.com/` dan pastikan halaman login tampil.
+2. Masuk dengan `administrator@mynet.local` dan password awal dari `MYNET_SEED_ADMIN_PASSWORD`, lalu ganti password ketika diminta.
+3. Pastikan dashboard terbuka, data awal tampil, dan tidak ada error di log aplikasi `writable/logs/` maupun log PHP/web server aaPanel.
+4. Jika memakai payment gateway, daftarkan callback hanya untuk provider yang diaktifkan:
+
+   ```text
+   https://mynet.ekiguistian.com/payments/webhook/tripay
+   https://mynet.ekiguistian.com/payments/webhook/midtrans
+   https://mynet.ekiguistian.com/payments/webhook/xendit
+   ```
+
+### Pemecahan masalah singkat
+
+- **404 saat membuka halaman selain login:** pastikan Running Directory atau root Nginx menunjuk ke `/public` dan rewrite Nginx aktif.
+- **Error koneksi database:** periksa hostname, nama database, username, password, port, dan izin user database pada `.env` server.
+- **Error 500 atau upload gagal:** periksa ekstensi PHP, versi PHP CLI, pemilik `writable/` dan `public/uploads/`, serta log aplikasi/PHP.
+- **Sertifikat tidak terbit:** pastikan DNS `mynet.ekiguistian.com` sudah menunjuk ke VPS dan port `80` dapat diakses dari internet.
+
+Referensi: [Dokumentasi Website aaPanel](https://www.aapanel.com/docs/SubaaPanel/Website.html), [PHP Project aaPanel](https://www.aapanel.com/docs/Function/php.html), [persyaratan server CodeIgniter 4](https://codeigniter.com/user_guide/intro/requirements.html), [deployment CodeIgniter 4](https://www.codeigniter.com/user_guide/installation/deployment.html), dan [rewrite URL Nginx CodeIgniter](https://www.codeigniter.com/user_guide/general/urls.html).
+
+## Opsional: konfigurasi development lokal
+
+Konfigurasi ini opsional dan hanya diperlukan bila Anda ingin menjalankan salinan development di komputer. Deploy produksi aaPanel di atas tidak memerlukan pengujian lokal.
 
 1. Pasang dependensi Composer:
 
@@ -131,132 +261,6 @@ Tidak ada halaman depan publik. Akses ke `/` langsung menampilkan halaman login.
 8. Buka `http://localhost:8080/` lalu masuk dengan username `administrator@mynet.local` dan password yang diatur pada langkah 5. Pengguna awal akan diminta mengganti password sebelum membuka dashboard.
 
 Document root web server harus diarahkan ke folder `public/`, bukan akar repo. Untuk produksi, gunakan `CI_ENVIRONMENT = production`, HTTPS, dan jangan aktifkan debug toolbar.
-
-## Deploy ke aaPanel (`mynet.ekiguistian.com`)
-
-Panduan ini menggunakan database MySQL/MariaDB yang sudah dibuat, `sql_mynet_ekiguistian_com`. Ganti nilai user database dan password dengan kredensial yang sudah disimpan pada `.env` server. Jangan menyalin password, encryption key, atau token aktif ke README atau Git.
-
-### 1. Arahkan domain ke server
-
-1. Pada pengelola DNS domain `ekiguistian.com`, buat record `A` untuk host `mynet` yang menunjuk ke alamat IPv4 publik VPS aaPanel.
-2. Jika server memakai IPv6, tambahkan record `AAAA` yang benar. Hapus record `AAAA` yang tidak digunakan agar pengunjung tidak diarahkan ke server yang salah.
-3. Pastikan firewall VPS dan firewall penyedia hosting mengizinkan koneksi TCP pada port `80` dan `443`.
-4. Tunggu hingga DNS mengarah ke alamat server sebelum meminta sertifikat SSL.
-
-### 2. Buat website PHP di aaPanel
-
-1. Buka **Website → PHP Project** (atau **Website → Add Site**, bergantung pada versi aaPanel), lalu tambahkan domain `mynet.ekiguistian.com`.
-2. Gunakan direktori proyek `/www/wwwroot/mynet.ekiguistian.com` dan pilih PHP `8.2` atau lebih baru.
-3. Pada pengaturan versi PHP di aaPanel, pastikan ekstensi `intl`, `mbstring`, `mysqli`/`mysqlnd`, `curl`, `openssl`, `json`, `fileinfo`, dan `dom` aktif. Gunakan versi PHP CLI yang sama dengan versi PHP website.
-4. Database tidak perlu dibuat ulang. Pastikan user database yang sudah dibuat memiliki izin koneksi dan perubahan skema pada `sql_mynet_ekiguistian_com`.
-
-### 3. Unggah kode aplikasi
-
-1. Unggah atau clone isi repositori ke `/www/wwwroot/mynet.ekiguistian.com`. Pastikan `composer.json`, `spark`, `app/`, `public/`, dan `writable/` berada langsung di direktori proyek tersebut, bukan di subfolder tambahan.
-2. Atur document root website ke `/www/wwwroot/mynet.ekiguistian.com/public`. Jika versi aaPanel menampilkan pilihan **Running Directory** relatif terhadap direktori situs, pilih `public`. Web server hanya boleh mengekspos folder `public/`; folder `app/`, `writable/`, `vendor/`, dan `.env` harus tetap di luar document root.
-3. Buka terminal aaPanel, lalu jalankan Composer dari direktori proyek:
-
-   ```bash
-   cd /www/wwwroot/mynet.ekiguistian.com
-   composer install --no-dev --optimize-autoloader --no-interaction
-   ```
-
-   Jika aaPanel menyediakan menu Composer, menu itu juga dapat dipakai. Pastikan Composer menggunakan PHP CLI `8.2` atau lebih baru dan ekstensi yang diperlukan sudah aktif.
-
-### 4. Siapkan `.env` produksi
-
-1. Salin `.env.example` menjadi `.env` di direktori proyek, atau buat `.env` baru di sana. Nama file harus persis `.env`, bukan `env` atau `.env.example`.
-2. Atur nilai produksi berikut. Jangan memasukkan nilai rahasia ke dokumentasi atau Git:
-
-   ```dotenv
-   CI_ENVIRONMENT = production
-   app.baseURL = 'https://mynet.ekiguistian.com/'
-
-   database.default.hostname = localhost
-   database.default.database = sql_mynet_ekiguistian_com
-   database.default.username = USER_DATABASE_AAPANEL
-   database.default.password = PASSWORD_DATABASE_AAPANEL
-   database.default.DBDriver = MySQLi
-   database.default.port = 3306
-
-   encryption.key = HASIL_RANDOM_64_KARAKTER_HEX
-   MYNET_SEED_ADMIN_PASSWORD = PASSWORD_ADMIN_UNIK_MINIMAL_12_KARAKTER
-   ```
-
-   Jika database berada di host lain, ganti `localhost` dan port sesuai konfigurasi hosting. Password administrator seed dipakai untuk akun awal `administrator@mynet.local`; akun akan diminta mengganti password saat login pertama. Buat encryption key baru sebelum kredensial router disimpan, lalu simpan dengan aman dan jangan menggantinya setelah digunakan.
-
-   Buat key melalui terminal:
-
-   ```bash
-   php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
-   ```
-
-3. Pastikan `.env` tidak berada di `public/` dan tidak ikut di-commit. Gunakan `.env.example` hanya sebagai template tanpa password atau token aktif.
-
-### 5. Jalankan migrasi database
-
-Jalankan dari direktori proyek menggunakan PHP CLI versi website:
-
-```bash
-cd /www/wwwroot/mynet.ekiguistian.com
-php spark migrate
-php spark db:seed MynetSeeder
-```
-
-Perintah seeder hanya dijalankan pada pemasangan pertama untuk membuat data awal dan administrator. Untuk deploy berikutnya, buat backup database terlebih dahulu, lalu jalankan migrasi yang baru tanpa menjalankan seeder lagi.
-
-### 6. Atur hak akses file
-
-Pastikan `writable/` dan `public/uploads/` dapat ditulis oleh user PHP yang dipakai website di aaPanel. Gunakan pemilik user website dan permission direktori yang sesuai, misalnya `775`; jangan membuka permission `777` untuk seluruh proyek. Folder `app/` dan file `.env` tidak perlu diberi akses tulis oleh web server.
-
-### 7. Atur URL rewrite
-
-- Untuk Apache, pastikan `public/.htaccess` ikut terunggah dan `mod_rewrite` aktif.
-- Untuk Nginx, tambahkan aturan berikut ke konfigurasi website di dalam blok `server {}` agar rute CodeIgniter diteruskan ke `index.php`:
-
-  ```nginx
-  location / {
-      try_files $uri $uri/ /index.php?$query_string;
-  }
-  ```
-
-  Simpan konfigurasi dan reload Nginx dari aaPanel. Jangan mengarahkan domain ke akar proyek.
-
-### 8. Aktifkan HTTPS
-
-1. Buka website di aaPanel, pilih **SSL**, lalu terbitkan sertifikat Let's Encrypt untuk `mynet.ekiguistian.com`.
-2. Setelah sertifikat aktif, aktifkan pengalihan HTTP ke HTTPS.
-3. Jika DNS memakai proxy seperti Cloudflare dan validasi sertifikat gagal, ubah record sementara menjadi **DNS only**, terbitkan sertifikat, lalu aktifkan kembali proxy setelah koneksi origin HTTPS berfungsi.
-
-### 9. Aktifkan antrean WhatsApp (jika digunakan)
-
-Atur `WA_PROVIDER` dan kredensial penyedia di `.env` atau melalui **Pengaturan → Integrasi API**. Di **Cron → Add Task** aaPanel, pilih tugas shell yang berjalan setiap menit dan gunakan perintah berikut. Sesuaikan path PHP CLI jika nama versi yang terpasang berbeda:
-
-```bash
-flock -n /tmp/mynet-wa-queue.lock sh -c 'cd /www/wwwroot/mynet.ekiguistian.com && /www/server/php/82/bin/php spark whatsapp:process-queue >> writable/logs/whatsapp-queue.log 2>&1'
-```
-
-### 10. Verifikasi aplikasi
-
-1. Buka `https://mynet.ekiguistian.com/` dan pastikan halaman login tampil.
-2. Masuk dengan `administrator@mynet.local` dan password awal dari `MYNET_SEED_ADMIN_PASSWORD`, lalu ganti password ketika diminta.
-3. Pastikan dashboard terbuka, data awal tampil, dan tidak ada error di log aplikasi `writable/logs/` maupun log PHP/web server aaPanel.
-4. Jika memakai payment gateway, daftarkan callback hanya untuk provider yang diaktifkan:
-
-   ```text
-   https://mynet.ekiguistian.com/payments/webhook/tripay
-   https://mynet.ekiguistian.com/payments/webhook/midtrans
-   https://mynet.ekiguistian.com/payments/webhook/xendit
-   ```
-
-### Pemecahan masalah singkat
-
-- **404 saat membuka halaman selain login:** pastikan document root berakhir dengan `/public` dan aturan rewrite Nginx/Apache aktif.
-- **Error koneksi database:** periksa hostname, nama database, username, password, port, dan izin user database pada `.env` server.
-- **Error 500 atau upload gagal:** periksa ekstensi PHP, versi PHP CLI, pemilik `writable/` dan `public/uploads/`, serta log aplikasi/PHP.
-- **Sertifikat tidak terbit:** pastikan DNS `mynet.ekiguistian.com` sudah menunjuk ke VPS dan port `80` dapat diakses dari internet.
-
-Referensi: [Dokumentasi Website aaPanel](https://www.aapanel.com/docs/SubaaPanel/Website.html), [PHP Project aaPanel](https://www.aapanel.com/docs/Function/php.html), [persyaratan server CodeIgniter 4](https://codeigniter.com/user_guide/intro/requirements.html), dan [deployment CodeIgniter 4](https://www.codeigniter.com/user_guide/installation/deployment.html).
 
 ## Konfigurasi WhatsApp
 
