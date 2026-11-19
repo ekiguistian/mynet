@@ -224,7 +224,12 @@ flock -n /tmp/mynet-wa-queue.lock sh -c 'cd <direktori-proyek> && <path-php-cli>
 ### 10. Verifikasi aplikasi
 
 1. Buka `https://<domain-anda>/` dan pastikan halaman login tampil.
-2. Masuk dengan username `mynet` dan password awal yang ditetapkan untuk instalasi, lalu ganti password saat diminta.
+2. Gunakan akun administrator awal berikut:
+
+   - Username: `mynet`
+   - Password: `<password awal yang dibagikan secara privat>`
+
+   Password aktif tidak dicantumkan di repository publik. Setelah login, aplikasi mewajibkan penggantian password sebelum dashboard dapat dibuka.
 3. Pastikan dashboard terbuka, data awal tampil, dan tidak ada error di log aplikasi `writable/logs/` maupun log PHP/web server aaPanel.
 4. Jika memakai payment gateway, daftarkan callback hanya untuk provider yang diaktifkan:
 
