@@ -52,6 +52,7 @@ if (! function_exists('mynet_menus')) {
             ['label' => 'Integrasi API', 'icon' => '⌘', 'url' => '/integrations'],
             ['label' => 'Template WhatsApp', 'icon' => '✉', 'url' => '/integrations/templates'],
             ['label' => 'API eksternal', 'icon' => '⇄', 'url' => '/settings/api-keys'],
+            ['label' => 'Versi aplikasi', 'icon' => '↻', 'url' => '/version'],
         ];
 
         $allow = [

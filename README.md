@@ -182,6 +182,8 @@ php spark migrate:status
 
 Semua migrasi aplikasi seharusnya menampilkan waktu pada kolom **Migrated On**. Seeder hanya dijalankan saat instalasi pertama; untuk deploy pembaruan, backup database, jalankan `php spark migrate`, lalu periksa kembali statusnya. Jangan menjalankan seeder berulang kali.
 
+Administrator utama juga dapat membuka menu **Versi aplikasi** untuk melihat versi aplikasi dan migrasi tertunda, lalu menjalankan migrasi dari halaman tersebut. Buat backup database sebelum menekan tombol migrasi; tindakan itu mengubah skema database.
+
 Contoh urutan perintah untuk instalasi pertama:
 
 ```bash
@@ -394,6 +396,7 @@ mynet/
 ├── env                # Template environment bawaan CodeIgniter
 ├── composer.json       # Dependensi dan metadata Composer
 ├── composer.lock       # Versi dependensi yang dikunci untuk instalasi konsisten
+├── VERSION             # Versi aplikasi yang ditampilkan pada menu Versi aplikasi
 ├── spark               # CLI CodeIgniter untuk migrasi, seeder, dan perintah aplikasi
 └── README.md           # Dokumentasi fitur, instalasi, dan struktur aplikasi
 ```

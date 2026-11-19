@@ -11,6 +11,8 @@ $routes->post('/auth/password', 'Auth::savePassword', ['filter' => 'auth']);
 $routes->group('', ['filter' => 'auth'], static function ($routes): void {
     $routes->post('/logout', 'Auth::logout');
     $routes->get('/dashboard', 'Dashboard::index');
+    $routes->get('/version', 'Version::index');
+    $routes->post('/version/migrate', 'Version::migrate');
     $routes->get('/area/(:segment)', 'Workspace::index/$1');
     $routes->get('/area/(:segment)/baru', 'Workspace::newForm/$1');
     $routes->post('/area/(:segment)/simpan', 'Workspace::store/$1');
