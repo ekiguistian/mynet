@@ -137,10 +137,9 @@ Siapkan terlebih dahulu domain, VPS aaPanel, database MySQL/MariaDB, serta krede
    database.default.port = 3306
 
    encryption.key = <kunci-acak-64-karakter-hex>
-   MYNET_SEED_ADMIN_PASSWORD = <password-admin-awal-yang-kuat>
    ```
 
-   Isi placeholder dari informasi yang diberikan panel hosting. Buat encryption key baru sebelum menyimpan kredensial router, lalu simpan dengan aman dan jangan menggantinya setelah digunakan. Ganti password administrator awal setelah login pertama.
+   Isi placeholder dari informasi yang diberikan panel hosting. Buat encryption key baru sebelum menyimpan kredensial router, lalu simpan dengan aman dan jangan menggantinya setelah digunakan.
 
    Buat key melalui terminal:
 
@@ -173,7 +172,7 @@ php spark migrate:status
    php spark db:seed MynetSeeder
    ```
 
-   Seeder membuat akun administrator utama dengan username `administrator@mynet.local` dan peran `superadmin`. Password awalnya adalah nilai `MYNET_SEED_ADMIN_PASSWORD` yang Anda isi sendiri di `.env` sebelum seeder dijalankan; README tidak menyediakan password bawaan. Akun akan diminta mengganti password saat login pertama.
+   Migrasi membuat akun administrator utama dengan username `mynet` dan peran `superadmin`, menyimpan password sebagai hash, serta mewajibkan penggantian password setelah login pertama. Seeder tidak memerlukan variabel password administrator di `.env`.
 
 5. Verifikasi status migrasi:
 
@@ -225,7 +224,7 @@ flock -n /tmp/mynet-wa-queue.lock sh -c 'cd <direktori-proyek> && <path-php-cli>
 ### 10. Verifikasi aplikasi
 
 1. Buka `https://<domain-anda>/` dan pastikan halaman login tampil.
-2. Masuk dengan username `administrator@mynet.local` dan password awal yang Anda atur melalui `MYNET_SEED_ADMIN_PASSWORD`, lalu ganti password saat diminta.
+2. Masuk dengan username `mynet` dan password awal yang ditetapkan untuk instalasi, lalu ganti password saat diminta.
 3. Pastikan dashboard terbuka, data awal tampil, dan tidak ada error di log aplikasi `writable/logs/` maupun log PHP/web server aaPanel.
 4. Jika memakai payment gateway, daftarkan callback hanya untuk provider yang diaktifkan:
 
@@ -272,9 +271,7 @@ Konfigurasi ini opsional dan hanya diperlukan bila Anda ingin menjalankan salina
 
    Salin hasilnya ke `encryption.key` di `.env`. Jangan mengganti key setelah kredensial router terenkripsi, kecuali kredensial tersebut dienkripsi ulang.
 
-5. Atur `MYNET_SEED_ADMIN_PASSWORD` di `.env` ke password unik minimal 12 karakter.
-
-6. Buat skema dan akun awal:
+5. Buat skema dan akun awal:
 
    ```bash
    php spark migrate
@@ -287,7 +284,7 @@ Konfigurasi ini opsional dan hanya diperlukan bila Anda ingin menjalankan salina
    php spark serve --host 127.0.0.1 --port 8080
    ```
 
-8. Buka `http://localhost:8080/` lalu masuk dengan username `administrator@mynet.local` dan password yang diatur pada langkah 5. Pengguna awal akan diminta mengganti password sebelum membuka dashboard.
+7. Buka `http://localhost:8080/` lalu masuk dengan username `mynet` dan password awal yang ditetapkan untuk instalasi. Pengguna awal akan diminta mengganti password sebelum membuka dashboard.
 
 Document root web server harus diarahkan ke folder `public/`, bukan akar repo. Untuk produksi, gunakan `CI_ENVIRONMENT = production`, HTTPS, dan jangan aktifkan debug toolbar.
 

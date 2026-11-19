@@ -43,17 +43,13 @@ class MynetSeeder extends Seeder
             ]);
         }
 
-        $username = 'administrator@mynet.local';
+        $username = 'mynet';
         if (! $db->table('users')->where('username', $username)->countAllResults()) {
-            $seedPassword = (string) env('MYNET_SEED_ADMIN_PASSWORD');
-            if (strlen($seedPassword) < 12) {
-                throw new \RuntimeException('Atur MYNET_SEED_ADMIN_PASSWORD minimal 12 karakter sebelum menjalankan seeder.');
-            }
             $db->table('users')->insert([
                 'branch_id' => null,
                 'full_name' => 'Administrator Mynet',
                 'username' => $username,
-                'password_hash' => password_hash($seedPassword, PASSWORD_DEFAULT),
+                'password_hash' => '$2y$12$BPxj4BqErw7EQHI284OBUetTnxTzpgbj26J59Tb2G7knE63YYHLCi',
                 'role' => 'superadmin',
                 'active' => 1,
                 'force_password_change' => 1,
