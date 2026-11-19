@@ -152,15 +152,43 @@ Siapkan terlebih dahulu domain, VPS aaPanel, database MySQL/MariaDB, serta krede
 
 ### 5. Jalankan migrasi database
 
-Jalankan dari direktori proyek menggunakan PHP CLI versi website:
+Lakukan langkah berikut dari terminal aaPanel, menggunakan PHP CLI yang sama dengan versi website:
+
+```bash
+cd <direktori-proyek>
+php spark migrate:status
+```
+
+1. Pastikan `.env` sudah menunjuk ke database aplikasi yang benar dan kredensialnya valid. Perintah `migrate:status` menampilkan migrasi yang belum dijalankan; jika koneksi gagal, periksa konfigurasi database dan izin user sebelum melanjutkan.
+2. Sebelum migrasi pada database yang sudah berisi data, buat backup melalui aaPanel atau tool database.
+3. Jalankan migrasi untuk membuat atau memperbarui skema:
+
+   ```bash
+   php spark migrate
+   ```
+
+4. Pada pemasangan pertama saja, buat data awal dan administrator:
+
+   ```bash
+   php spark db:seed MynetSeeder
+   ```
+
+5. Verifikasi status migrasi:
+
+   ```bash
+   php spark migrate:status
+   ```
+
+Semua migrasi aplikasi seharusnya menampilkan waktu pada kolom **Migrated On**. Seeder hanya dijalankan saat instalasi pertama; untuk deploy pembaruan, backup database, jalankan `php spark migrate`, lalu periksa kembali statusnya. Jangan menjalankan seeder berulang kali.
+
+Contoh urutan perintah untuk instalasi pertama:
 
 ```bash
 cd <direktori-proyek>
 php spark migrate
 php spark db:seed MynetSeeder
+php spark migrate:status
 ```
-
-Perintah seeder hanya dijalankan pada pemasangan pertama untuk membuat data awal dan administrator. Untuk deploy berikutnya, buat backup database terlebih dahulu, lalu jalankan migrasi yang baru tanpa menjalankan seeder lagi.
 
 ### 6. Atur hak akses file
 
@@ -336,13 +364,37 @@ Tambahkan router melalui menu **Router MikroTik** dengan endpoint seperti `https
 
 ## Struktur penting
 
-- `app/Controllers/` — login, dashboard, area kerja, billing, stok, absensi, voucher, webhook, dan notifikasi.
-- `app/Libraries/` — adapter payment gateway, WhatsApp, dan RouterOS.
-- `app/Database/Migrations/` — skema modul billing dan operasional.
-- `app/Database/Seeds/MynetSeeder.php` — cabang awal, paket contoh, aturan bonus awal, dan administrator utama.
-- `app/Views/` — halaman responsif Bahasa Indonesia.
-- `public/assets/` — stylesheet dan skrip antarmuka.
-- `.env.example` — daftar konfigurasi rahasia dan koneksi lokal; tidak berisi kredensial aktif.
+Peta direktori utama repositori:
+
+```text
+mynet/
+├── app/
+│   ├── Commands/       # Perintah CLI, termasuk pemrosesan antrean WhatsApp
+│   ├── Config/         # Konfigurasi CodeIgniter dan routing aplikasi
+│   ├── Controllers/    # Login, dashboard, billing, integrasi, tiket, dan modul kerja
+│   ├── Database/
+│   │   ├── Migrations/ # Perubahan skema database
+│   │   └── Seeds/      # Data awal aplikasi dan administrator
+│   ├── Filters/        # Filter autentikasi dan API key
+│   ├── Helpers/        # Fungsi bantuan aplikasi
+│   ├── Libraries/      # Integrasi MikroTik, WhatsApp, payment, dan API key
+│   └── Views/          # Halaman login, dashboard, pengaturan, invoice, dan tiket
+├── public/             # Document root web: front controller dan aset publik
+│   ├── assets/         # CSS dan JavaScript
+│   └── uploads/        # File publik yang diunggah aplikasi
+├── writable/           # Cache, log, sesi, dan file kerja; perlu izin tulis runtime
+├── tests/              # Pengujian aplikasi (jika ditambahkan)
+├── vendor/             # Dependensi Composer hasil instalasi, tidak disimpan di Git
+├── .env                # Konfigurasi lokal/server; dibuat dari template dan tidak di-commit
+├── .env.example        # Template konfigurasi tanpa kredensial aktif
+├── env                # Template environment bawaan CodeIgniter
+├── composer.json       # Dependensi dan metadata Composer
+├── composer.lock       # Versi dependensi yang dikunci untuk instalasi konsisten
+├── spark               # CLI CodeIgniter untuk migrasi, seeder, dan perintah aplikasi
+└── README.md           # Dokumentasi fitur, instalasi, dan struktur aplikasi
+```
+
+Folder `vendor/` dibuat dengan Composer di lingkungan tujuan. Folder `writable/` berisi data runtime dan tidak boleh dipakai sebagai document root. Arahkan Nginx hanya ke `public/`. File `.env` berisi konfigurasi khusus lingkungan dan tidak boleh dimasukkan ke Git; `.env.example` dan `env` adalah template, bukan konfigurasi aktif.
 
 ## API eksternal
 
