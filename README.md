@@ -21,18 +21,28 @@
 
 `mynet` sedang dimigrasikan dari CodeIgniter ke **Laravel 13** dengan **FilamentPHP v3** sebagai panel admin. Nama aplikasi ditetapkan sebagai `mynet` dan tidak dapat diubah dari pengaturan aplikasi. Panel administrator tersedia di `/admin`; halaman `/` mengarah ke panel tersebut.
 
-## Cakupan fitur
+## Fitur wajib dan status implementasi
 
-Fitur legacy yang menjadi sasaran migrasi meliputi:
+Semua persyaratan utama berikut sudah memiliki alur aplikasi di panel Filament. Integrasi eksternal memerlukan kredensial milik perusahaan sebelum dapat dipakai di produksi.
 
-- Pelanggan, cabang/area, paket PPPoE dan IP statis, serta sinkronisasi akun dan isolir MikroTik.
-- Router MikroTik, voucher hotspot, pemantauan router, ODC/ODP, port pelanggan, dan serial ONT/ONU.
-- Tagihan, pembayaran manual dan gateway Tripay/Midtrans/Xendit, invoice PDF, dan buku kas.
-- Stok barang dan mutasi, absensi, tugas teknisi, tiket maintenance, bonus teknisi, dan sales fee.
-- WhatsApp NgirimWA/Fonnte, template pesan, antrean terjadwal, dan pengaturan cabang.
-- Pengaturan SEO, kontak, media sosial, serta API eksternal.
+1. [x] **Dashboard umum** — widget ringkasan pelanggan, tagihan, pembayaran, tiket, stok minimum, dan pekerjaan selesai sesuai hak akses.
+2. [x] **Pelanggan dan tagihan** — CRUD pelanggan PPPoE/IP statis, paket/router, tagihan bulanan idempoten, pembayaran manual, dan checkout gateway.
+3. [x] **Barang dan inventaris** — CRUD barang, pencatatan masuk/keluar yang memperbarui stok, penolakan stok negatif, dan rekap pergerakan.
+4. [x] **Keuangan** — kategori, pendapatan/pengeluaran, arus kas, serta filter laporan harian, mingguan, bulanan, triwulanan, tahunan, dan seluruh periode.
+5. [x] **Paket internet** — kelola paket, harga, kecepatan, profil layanan, dan status paket.
+6. [x] **Cabang** — kelola cabang, koordinat, dan radius absensi.
+7. [x] **Teknisi dan tiket** — kelola teknisi, tiket dan work order; laporan per teknisi mencakup tiket, pekerjaan, dan absensi menurut periode.
+8. [x] **Absensi karyawan** — check-in/pulang dengan waktu, GPS dalam radius cabang, foto, IP, catatan, serta pengelolaan absensi sesuai peran.
+9. [x] **Pengaturan aplikasi** — merek `mynet` dikunci; tersedia judul/deskripsi/kata kunci SEO, verifikasi Google Search Console, media sosial, dan telepon layanan.
+10. [x] **Manajemen pengguna dan peran** — administrator, admin, finance, sales, teknisi, helper, manager, dan NOC dengan izin fitur.
+11. [x] **Cakupan cabang** — manager tanpa cabang dapat melihat data lintas cabang; manager terikat cabang dibatasi ke data operasional cabangnya. Paket internet dan kategori keuangan tanpa cabang adalah data master bersama.
+12. [x] **Integrasi** — sinkronisasi akun PPPoE dan tes RouterOS, checkout/webhook Midtrans/Xendit/TriPay, WhatsApp OTP, dan SMTP email. Simpan kredensial melalui halaman Integrasi.
+13. [x] **Profil pengguna** — ubah nama, kata sandi, email, nomor WhatsApp, dan foto; perubahan kontak diverifikasi OTP ke kontak lama serta baru. Login pertama memaksa perubahan kata sandi dan verifikasi email.
+14. [x] **Pengaturan perusahaan** — profil nama perusahaan, pemilik, penanggung jawab, NOC, CS, email, alamat, dan media sosial.
+15. [x] **Versi, database, dan lisensi** — tampilkan/simpan versi semver, jalankan migrasi, sediakan tautan ke repository untuk alur pull request, dan tampilkan lisensi MIT. Pemasangan kode baru dilakukan melalui alur repository/deployment, bukan perintah `git pull` otomatis dari panel.
+16. [x] **Log aplikasi** — log perubahan dan login tersimpan; hanya Administrator global yang dapat membuka halaman log.
 
-**Status migrasi:** fondasi Laravel, panel Filament, paket integrasi, skema database, dan model Eloquent sudah disiapkan. Service bisnis, resource CRUD, widget dashboard, dan otomasi scheduler masih dalam proses porting; daftar fitur di atas adalah cakupan migrasi, bukan klaim bahwa seluruh layar sudah selesai.
+**Hasil:** implementasi mencakup resource CRUD, pembatasan akses per peran/cabang, laporan, command penagihan terjadwal, halaman pengaturan, serta alur integrasi dan OTP. Pembuatan akun administrator awal memakai command `php artisan mynet:make-administrator`. Sebelum dipakai, isi `.env`, atur integrasi, koordinat cabang, dan jalankan scheduler.
 
 ## Teknologi
 
@@ -59,13 +69,16 @@ Fitur legacy yang menjadi sasaran migrasi meliputi:
    ```sh
    php artisan key:generate
    php artisan migrate
+   php artisan storage:link
    ```
 
-6. Buat akun administrator Filament:
+6. Buat akun Administrator pertama:
 
    ```sh
-   php artisan make:filament-user
+   php artisan mynet:make-administrator
    ```
+
+   Command ini meminta nama, email, dan kata sandi kuat, lalu mengharuskan perubahan kata sandi serta verifikasi email pada login pertama.
 
 7. Jalankan aplikasi untuk pengembangan:
 
@@ -77,7 +90,7 @@ Fitur legacy yang menjadi sasaran migrasi meliputi:
 
 ## Penjadwalan
 
-Setelah command billing dan isolir otomatis selesai dipasang, jalankan Laravel Scheduler setiap menit melalui cron:
+Penagihan membuat tagihan bulanan pada tanggal 1 pukul 00:10. Jalankan Laravel Scheduler setiap menit melalui cron:
 
 ```cron
 * * * * * cd /path/to/mynet && php artisan schedule:run >> /dev/null 2>&1
